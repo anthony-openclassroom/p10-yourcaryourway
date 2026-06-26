@@ -23,7 +23,7 @@
 
   <p class="error-banner" role="alert" *ngIf="errorMessage">{{ errorMessage }}</p>
 
-  <ul #messageList class="message-list" aria-live="polite" aria-label="Messages du tchat">
+  <ul #messageList class="message-list" role="log" aria-live="polite" aria-label="Messages du tchat">
     <li
       *ngFor="let msg of messages$ | async; trackBy: trackById"
       class="message"

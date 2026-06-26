@@ -178,7 +178,8 @@
   overflow-y: auto;
 
   &:focus {
-    outline: none;
+    outline: 2px solid var(--color-secondary);
+    outline-offset: 2px;
     border-color: var(--color-secondary);
     background: #fff;
   }

@@ -251,3 +251,46 @@ flowchart LR
 | RGPD | Consentement explicite, droit d'accès et d'effacement |
 | API agences | Rétrocompatibilité attendue lors du déploiement progressif |
 
+---
+
+## Product Backlog — User Stories
+
+Le backlog complet (vue Kanban, chronologie, filtres par sprint et critères d'acceptation) est disponible sur Notion :
+**[→ Voir le backlog sur Notion](https://anthony-gorski.notion.site/Your-Car-Your-Way-38a381ed55f480dbaf15e09569dc617c?pvs=74)** *(lien externe)*
+
+Le tableau ci-dessous en présente la vue synthétique. Le backlog est planifié sur **3,3 mois** (Sprint 0 à Sprint 7) pour un total de **111 story points**.
+
+| ID | Titre | Épic | Priorité | Sprint | SP | Statut |
+|---|---|---|---|---|---|---|
+| US#00 | Tchat support en temps réel (PoC) | PoC | Haute | Sprint 0 | 8 | En cours |
+| US#01 | Créer un compte | Auth | Haute | Sprint 1 | 3 | En cours |
+| US#02 | Se connecter | Auth | Haute | Sprint 1 | 2 | En cours |
+| US#03 | Se déconnecter | Auth | Haute | Sprint 1 | 1 | En cours |
+| US#04 | Réinitialiser son mot de passe | Auth | Haute | Sprint 1 | 3 | En cours |
+| US#05 | Setup environnement (Docker + BDD) | Infra | Haute | Sprint 1 | 5 | En cours |
+| US#06 | Consulter son profil | Profil | Haute | Sprint 2 | 2 | Backlog |
+| US#07 | Modifier ses informations personnelles | Profil | Haute | Sprint 2 | 3 | Backlog |
+| US#08 | Modifier son email | Profil | Moyenne | Sprint 2 | 3 | Backlog |
+| US#09 | Modifier son mot de passe | Profil | Haute | Sprint 2 | 2 | Backlog |
+| US#10 | Supprimer son compte | Profil | Haute | Sprint 2 | 5 | Backlog |
+| US#11 | Consulter la liste des agences | Recherche | Haute | Sprint 3 | 2 | Backlog |
+| US#12 | Rechercher des offres de location | Recherche | Haute | Sprint 3 | 5 | Backlog |
+| US#13 | Filtrer et trier les résultats | Recherche | Moyenne | Sprint 3 | 3 | Backlog |
+| US#14 | Consulter le détail d'une offre | Recherche | Haute | Sprint 3 | 2 | Backlog |
+| US#15 | Réserver une offre | Réservation | Haute | Sprint 4 | 5 | Backlog |
+| US#16 | Pré-remplir depuis le profil | Réservation | Haute | Sprint 4 | 2 | Backlog |
+| US#17 | Payer via Stripe | Réservation | Haute | Sprint 5 | 8 | Backlog |
+| US#18 | Recevoir une confirmation par email | Réservation | Haute | Sprint 5 | 3 | Backlog |
+| US#19 | Consulter l'historique des réservations | Réservation | Haute | Sprint 4 | 3 | Backlog |
+| US#20 | Modifier une réservation | Réservation | Haute | Sprint 4 | 5 | Backlog |
+| US#21 | Annuler une réservation | Réservation | Haute | Sprint 5 | 5 | Backlog |
+| US#22 | API — CRUD utilisateurs | API Agences | Haute | Sprint 6 | 5 | Backlog |
+| US#23 | API — CRUD réservations | API Agences | Haute | Sprint 6 | 5 | Backlog |
+| US#24 | API — CRUD offres | API Agences | Haute | Sprint 6 | 4 | Backlog |
+| US#25 | API — CRUD agences | API Agences | Haute | Sprint 7 | 3 | Backlog |
+| US#26 | API — Authentification par clé | API Agences | Haute | Sprint 7 | 3 | Backlog |
+| US#27 | Navigation entièrement au clavier | Accessibilité | Haute | Sprint 7 | 5 | Backlog |
+| US#28 | Compatibilité lecteurs d'écran | Accessibilité | Haute | Sprint 7 | 5 | Backlog |
+
+**Total : 29 user stories — 111 story points — 3,3 mois**
+

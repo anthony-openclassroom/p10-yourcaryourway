@@ -24,6 +24,20 @@
 | CA                | Node.js     | React         | AWS                | Monolithe              |
 | US                | Spring Boot | Angular       | Azure App Services | Monolithe containerisé |
 
+### 1.0 Critères d'évaluation
+
+L'audit s'appuie sur les cinq critères suivants, définis en cohérence avec les objectifs de la refonte. La conclusion (§1.4) évalue l'existant au regard de chacun d'eux.
+
+| Critère | Définition | Cible visée |
+| --- | --- | --- |
+| **Disponibilité** | Taux d'uptime annuel et temps de récupération après incident (MTTR) | ≥ 99,5 %, MTTR < 30 min |
+| **Sécurité** | Robustesse face aux CVE, algorithmes de hashage, chiffrement, gestion des secrets | 0 CVE critique, Argon2id, TLS 1.3 |
+| **Performance** | Capacité de charge (req/s) et taux d'erreur lors des pics saisonniers | ≥ 500 req/s, < 0,5 % erreurs |
+| **Maintenabilité** | Cohérence du code, automatisation des déploiements, délai de stabilisation après release | Déploiement automatisé, rollback < 5 min |
+| **Évolutivité** | Capacité à intégrer de nouveaux marchés ou fonctionnalités sans refonte majeure | Architecture unifiée, API-first |
+
+---
+
 ### 1.2 Forces
 
 - HTTPS activé sur toutes les applications.
@@ -311,6 +325,46 @@ flowchart TB
     M1 & M2 & M3 & M4 & M5 --> DB
     M1 & M3 --> CACHE
 ```
+
+### 4.6 Diagramme de classes — Module Tchat (SF-06)
+
+```mermaid
+classDiagram
+    class ChatSession {
+        UUID id
+        UUID userId
+        UUID agencyId
+        Status status
+        DateTime createdAt
+        DateTime closedAt
+    }
+
+    class ChatMessage {
+        UUID id
+        UUID sessionId
+        SenderRole senderRole
+        String content
+        DateTime sentAt
+    }
+
+    class Status {
+        <<enumeration>>
+        open
+        closed
+    }
+
+    class SenderRole {
+        <<enumeration>>
+        client
+        agent
+    }
+
+    ChatSession "1" --> "*" ChatMessage : contient
+    ChatSession --> Status : a un statut
+    ChatMessage --> SenderRole : envoyé par
+```
+
+> Les FK vers `users(id)` et `agencies(id)` sont présentes dans le schéma cible. Dans le PoC, elles sont simulées par des UUIDs fixes (`DEMO_USER_ID`, `DEMO_AGENCY_ID`) en l'absence des modules Auth et Agences.
 
 ---
 
