@@ -9,7 +9,7 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.ycyw</groupId>
-	<artifactId>chat-poc</artifactId>
+	<artifactId>chat</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name/>
 	<description/>

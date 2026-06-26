@@ -1,13 +1,12 @@
-package com.ycyw.chat_poc;
+package com.ycyw.chat;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class ChatPocApplication {
+public class ChatApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(ChatPocApplication.class, args);
+		SpringApplication.run(ChatApplication.class, args);
 	}
-
 }

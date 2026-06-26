@@ -1,4 +1,4 @@
-package com.ycyw.chat_poc.config;
+package com.ycyw.chat.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
