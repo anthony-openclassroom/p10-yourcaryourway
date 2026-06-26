@@ -1,13 +1,18 @@
 <!doctype html>
-<html lang="en">
+<html lang="fr">
   <head>
     <meta charset="utf-8" />
-    <title>Frontend</title>
+    <title>YCYW — Tchat Support</title>
     <base href="/" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" type="image/x-icon" href="favicon.ico" />
   </head>
   <body>
+    <script>
+      // sockjs-client est écrit pour Node.js et référence `global` (objet global de Node).
+      // Dans un navigateur, `global` n'existe pas, on le mappe sur `window` pour éviter un ReferenceError au chargement.
+      window.global = window;
+    </script>
     <app-root></app-root>
   </body>
 </html>
