@@ -1,1 +1,61 @@
-<p>chat works!</p>
+<main class="chat-container" role="main" aria-label="Tchat support YCYW">
+
+  <header class="chat-header">
+    <div class="chat-header__left">
+      <a routerLink="/" class="back-btn" aria-label="Retour à l'accueil">&#8592;</a>
+      <div class="chat-header__info">
+        <span class="chat-header__title">Support YCYW</span>
+        <span
+          class="role-badge"
+          [class.role-badge--client]="currentRole === 'client'"
+          [class.role-badge--agent]="currentRole === 'agent'"
+        >
+          {{ currentRole === 'client' ? 'Client' : 'Agent' }}
+        </span>
+      </div>
+    </div>
+
+    <div class="share-box" *ngIf="sessionId">
+      <span class="share-label">Lien {{ currentRole === 'client' ? 'agent' : 'client' }} :</span>
+      <code class="share-link">{{ 'http://localhost:4200/chat?sessionId=' + sessionId + '&role=' + (currentRole === 'client' ? 'agent' : 'client') }}</code>
+    </div>
+  </header>
+
+  <p class="error-banner" role="alert" *ngIf="errorMessage">{{ errorMessage }}</p>
+
+  <ul #messageList class="message-list" aria-live="polite" aria-label="Messages du tchat">
+    <li
+      *ngFor="let msg of messages$ | async; trackBy: trackById"
+      class="message"
+      [class.message--client]="msg.senderRole === 'client'"
+      [class.message--agent]="msg.senderRole === 'agent'"
+    >
+      <p class="message__content">{{ msg.content }}</p>
+      <time class="message__time" [dateTime]="msg.sentAt">{{ msg.sentAt | date: 'HH:mm' }}</time>
+    </li>
+  </ul>
+
+  <form class="chat-form" (submit)="send()" aria-label="Envoyer un message">
+    <label for="messageInput" class="sr-only">Message</label>
+    <textarea
+      id="messageInput"
+      class="chat-input"
+      [(ngModel)]="inputText"
+      name="message"
+      placeholder="Écrivez un message…"
+      rows="1"
+      [disabled]="!isConnected"
+      (keydown)="onKeydown($event)"
+      aria-required="true"
+    ></textarea>
+    <button
+      type="submit"
+      class="send-btn"
+      [disabled]="!isConnected || !inputText.trim()"
+      aria-label="Envoyer"
+    >
+      &#9654;
+    </button>
+  </form>
+
+</main>
