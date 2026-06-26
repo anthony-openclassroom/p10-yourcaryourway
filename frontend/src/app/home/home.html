@@ -1,1 +1,16 @@
-<p>home works!</p>
+<main class="home-container" role="main">
+  <div class="hero">
+    <img src="logo.png" alt="Your Car Your Way" class="logo" aria-hidden="true" />
+    <h1 class="hero__title">Your Car Your Way</h1>
+    <p class="hero__subtitle">Location de voitures internationale</p>
+  </div>
+
+  <section class="support-card" aria-labelledby="support-heading">
+    <h2 id="support-heading" class="support-card__title">Besoin d'aide ?</h2>
+    <p class="support-card__desc">
+      Notre équipe support est disponible pour répondre à toutes vos questions concernant votre
+      réservation.
+    </p>
+    <button class="support-btn" (click)="goToChat()" type="button">Contacter le support</button>
+  </section>
+</main>
