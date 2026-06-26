@@ -14,7 +14,6 @@ Proof of concept du module **SF-06 — Tchat support** de la plateforme **Your C
 | Backend           | Spring Boot       | 4.1.0   |
 | Langage backend   | Java              | 21      |
 | Base de données   | PostgreSQL        | 16      |
-| Cache             | Redis             | 7       |
 | Migrations        | Flyway            | —       |
 | WebSocket         | STOMP over SockJS | —       |
 | Documentation API | SpringDoc OpenAPI | 2.5.0   |
@@ -62,16 +61,70 @@ Proof of concept du module **SF-06 — Tchat support** de la plateforme **Your C
 │   ├── architecture.md
 │   ├── cahier_des_charges.md
 │   └── resume.md
-└── docker-compose.yml          # PostgreSQL + Redis
+└── docker-compose.yml          # PostgreSQL
 ```
 
 ---
 
 ## Prérequis
 
-- **Java 21** — [sdkman.io](https://sdkman.io) recommandé
-- **Node.js 20+** + npm
-- **Docker & Docker Compose**
+### Java 21
+
+Vérifie ta version :
+
+```bash
+java -version
+```
+
+Installation recommandée via [SDKMAN](https://sdkman.io) :
+
+```bash
+curl -s "https://get.sdkman.io" | bash
+sdk install java 21.0.7-tem
+```
+
+### Node.js 20+ et Angular CLI
+
+Vérifie ta version :
+
+```bash
+node -v   # >= 20
+ng version
+```
+
+Installer Angular CLI globalement :
+
+```bash
+npm install -g @angular/cli
+```
+
+### Docker & Docker Compose
+
+Vérifie que Docker tourne :
+
+```bash
+docker -v
+docker compose version
+```
+
+Installer : [docs.docker.com/get-docker](https://docs.docker.com/get-docker/)
+
+### Maven (optionnel)
+
+Le projet embarque le **Maven Wrapper** (`./mvnw`) — aucune installation locale requise. Maven n'est nécessaire que si tu veux utiliser une installation système existante.
+
+---
+
+### Récapitulatif
+
+| Outil          | Version minimale | Vérification             |
+| -------------- | ---------------- | ------------------------ |
+| Java           | 21               | `java -version`          |
+| Node.js        | 20               | `node -v`                |
+| npm            | 10               | `npm -v`                 |
+| Angular CLI    | 20               | `ng version`             |
+| Docker         | 24               | `docker -v`              |
+| Docker Compose | 2.x              | `docker compose version` |
 
 ---
 
@@ -80,17 +133,17 @@ Proof of concept du module **SF-06 — Tchat support** de la plateforme **Your C
 ### 1. Cloner le dépôt
 
 ```bash
-git clone <url-du-repo>
+git clone git@github.com:anthony-openclassroom/p10-yourcaryourway.git ycyw
 cd ycyw
 ```
 
-### 2. Démarrer les services (base de données + Redis)
+### 2. Démarrer la base de données
 
 ```bash
 docker compose up -d
 ```
 
-PostgreSQL sera disponible sur `localhost:5433`, Redis sur `localhost:6379`.
+PostgreSQL sera disponible sur `localhost:5433`.
 
 ### 3. Configurer le backend
 
