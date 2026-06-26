@@ -12,7 +12,8 @@ import lombok.*;
 public class ChatMessage {
 
     // Valeurs en minuscules pour correspondre exactement au CHECK constraint de la migration SQL
-    public enum SenderRole { client, agent }
+    // "system" n'est pas persisté en base — uniquement diffusé via WebSocket comme notification
+    public enum SenderRole { client, agent, system }
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

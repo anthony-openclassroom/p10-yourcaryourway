@@ -19,4 +19,13 @@ public record OutboundMessageDto(
                 message.getContent(), message.getSentAt()
         );
     }
+
+    // Notification de fermeture de session — non persistée en base
+    public static OutboundMessageDto sessionClosed(UUID sessionId, String closedBy) {
+        return new OutboundMessageDto(
+                UUID.randomUUID(), sessionId, ChatMessage.SenderRole.system,
+                "La session a été fermée par " + closedBy + ".",
+                OffsetDateTime.now()
+        );
+    }
 }

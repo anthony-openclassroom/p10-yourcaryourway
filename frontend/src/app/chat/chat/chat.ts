@@ -1,4 +1,5 @@
 import {
+  ChangeDetectorRef,
   Component,
   OnInit,
   OnDestroy,
@@ -7,7 +8,7 @@ import {
   AfterViewChecked,
 } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Observable } from 'rxjs';
+import { Observable, Subscription } from 'rxjs';
 
 import { ChatService } from './chat.service';
 import { ChatMessage } from './chat.model';
@@ -29,16 +30,30 @@ export class Chat implements OnInit, OnDestroy, AfterViewChecked {
   currentRole: 'client' | 'agent' = 'client';
   inputText = '';
   isConnected = false;
+  isClosed = false;
   errorMessage = '';
+
+  private sysSub?: Subscription;
 
   constructor(
     private chatService: ChatService,
     private route: ActivatedRoute,
     private router: Router,
+    private cdr: ChangeDetectorRef,
   ) {}
 
   ngOnInit(): void {
     this.messages$ = this.chatService.messages$;
+
+    // Souscription dédiée à la détection du message système (fermeture côté autre participant)
+    // detectChanges() force la mise à jour car le callback STOMP s'exécute hors de la zone Angular
+    this.sysSub = this.chatService.messages$.subscribe(messages => {
+      if (!this.isClosed && messages.some(m => m.senderRole === 'system')) {
+        this.isClosed = true;
+        this.isConnected = false;
+        this.cdr.detectChanges();
+      }
+    });
 
     const params = this.route.snapshot.queryParamMap;
     const existingSessionId = params.get('sessionId');
@@ -105,7 +120,19 @@ export class Chat implements OnInit, OnDestroy, AfterViewChecked {
     }
   }
 
+  closeSession(): void {
+    if (!this.sessionId || this.isClosed) return;
+    const closedBy = this.currentRole === 'client' ? 'le client' : "l'agent";
+    this.chatService.closeSession(this.sessionId, closedBy).subscribe({
+      error: () => {
+        this.errorMessage = 'Impossible de fermer la session.';
+        this.cdr.detectChanges();
+      },
+    });
+  }
+
   ngOnDestroy(): void {
+    this.sysSub?.unsubscribe();
     this.chatService.disconnect();
   }
 }

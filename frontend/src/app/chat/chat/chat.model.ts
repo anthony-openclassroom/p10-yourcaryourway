@@ -9,7 +9,7 @@ export interface ChatSession {
 export interface ChatMessage {
   id: string;
   sessionId: string;
-  senderRole: 'client' | 'agent';
+  senderRole: 'client' | 'agent' | 'system';
   content: string;
   sentAt: string;
 }

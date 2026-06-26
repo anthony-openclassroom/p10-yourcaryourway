@@ -15,9 +15,20 @@
       </div>
     </div>
 
-    <div class="share-box" *ngIf="sessionId">
-      <span class="share-label">Lien {{ currentRole === 'client' ? 'agent' : 'client' }} :</span>
-      <code class="share-link">{{ 'http://localhost:4200/chat?sessionId=' + sessionId + '&role=' + (currentRole === 'client' ? 'agent' : 'client') }}</code>
+    <div class="chat-header__right">
+      <div class="share-box" *ngIf="sessionId && !isClosed">
+        <span class="share-label">Lien {{ currentRole === 'client' ? 'agent' : 'client' }} :</span>
+        <code class="share-link">{{ 'http://localhost:4200/chat?sessionId=' + sessionId + '&role=' + (currentRole === 'client' ? 'agent' : 'client') }}</code>
+      </div>
+      <button
+        *ngIf="!isClosed"
+        class="close-btn"
+        (click)="closeSession()"
+        aria-label="Fermer la session de tchat"
+      >
+        Fermer la session
+      </button>
+      <span *ngIf="isClosed" class="session-closed-badge" role="status">Session fermée</span>
     </div>
   </header>
 
@@ -28,10 +39,11 @@
       *ngFor="let msg of messages$ | async; trackBy: trackById"
       class="message"
       [class.message--mine]="msg.senderRole === currentRole"
-      [class.message--theirs]="msg.senderRole !== currentRole"
+      [class.message--theirs]="msg.senderRole !== currentRole && msg.senderRole !== 'system'"
+      [class.message--system]="msg.senderRole === 'system'"
     >
       <p class="message__content">{{ msg.content }}</p>
-      <time class="message__time" [dateTime]="msg.sentAt">{{ msg.sentAt | date: 'HH:mm' }}</time>
+      <time *ngIf="msg.senderRole !== 'system'" class="message__time" [dateTime]="msg.sentAt">{{ msg.sentAt | date: 'HH:mm' }}</time>
     </li>
   </ul>
 

@@ -48,8 +48,11 @@ export class ChatService implements OnDestroy {
     });
   }
 
-  closeSession(sessionId: string): Observable<void> {
-    return this.http.patch<void>(`${environment.apiUrl}/api/chat/sessions/${sessionId}/close`, {});
+  closeSession(sessionId: string, closedBy: string): Observable<void> {
+    return this.http.patch<void>(
+      `${environment.apiUrl}/api/chat/sessions/${sessionId}/close?closedBy=${encodeURIComponent(closedBy)}`,
+      {}
+    );
   }
 
   prependHistory(messages: ChatMessage[]): void {

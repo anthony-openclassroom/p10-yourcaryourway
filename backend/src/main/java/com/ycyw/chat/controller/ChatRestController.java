@@ -10,6 +10,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.UUID;
@@ -21,6 +22,7 @@ import java.util.UUID;
 public class ChatRestController {
 
     private final ChatService chatService;
+    private final SimpMessagingTemplate messagingTemplate;
 
     @PostMapping("/sessions")
     @ResponseStatus(HttpStatus.CREATED)
@@ -38,8 +40,15 @@ public class ChatRestController {
     // ResponseEntity utilisé ici (pas @ResponseStatus) pour contrôler explicitement le 204
     @PatchMapping("/sessions/{sessionId}/close")
     @Operation(summary = "Ferme une session de tchat")
-    public ResponseEntity<Void> closeSession(@PathVariable UUID sessionId) {
+    public ResponseEntity<Void> closeSession(
+            @PathVariable UUID sessionId,
+            @RequestParam(defaultValue = "l'un des participants") String closedBy) {
         chatService.closeSession(sessionId);
+        // Notifie les deux onglets via WebSocket — non persisté en base
+        messagingTemplate.convertAndSend(
+                "/topic/chat/" + sessionId,
+                OutboundMessageDto.sessionClosed(sessionId, closedBy)
+        );
         return ResponseEntity.noContent().build();
     }
 }
