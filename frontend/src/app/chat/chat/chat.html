@@ -27,8 +27,8 @@
     <li
       *ngFor="let msg of messages$ | async; trackBy: trackById"
       class="message"
-      [class.message--client]="msg.senderRole === 'client'"
-      [class.message--agent]="msg.senderRole === 'agent'"
+      [class.message--mine]="msg.senderRole === currentRole"
+      [class.message--theirs]="msg.senderRole !== currentRole"
     >
       <p class="message__content">{{ msg.content }}</p>
       <time class="message__time" [dateTime]="msg.sentAt">{{ msg.sentAt | date: 'HH:mm' }}</time>

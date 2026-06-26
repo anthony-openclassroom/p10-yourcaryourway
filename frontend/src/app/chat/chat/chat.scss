@@ -123,14 +123,14 @@
   font-size: 0.9rem;
   line-height: 1.45;
 
-  &--client {
+  &--mine {
     align-self: flex-end;
     background: var(--color-secondary);
     color: #fff;
     border-bottom-right-radius: 4px;
   }
 
-  &--agent {
+  &--theirs {
     align-self: flex-start;
     background: #fff;
     color: #1a1a1a;
