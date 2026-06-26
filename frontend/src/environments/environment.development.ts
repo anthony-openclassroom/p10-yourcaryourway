@@ -1,1 +1,5 @@
-export const environment = {};
+export const environment = {
+  production: false,
+  apiUrl: 'http://localhost:8081',
+  wsUrl: 'http://localhost:8081/ws-sockjs',
+};
