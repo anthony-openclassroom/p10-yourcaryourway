@@ -11,6 +11,9 @@ import lombok.*;
 @Getter @Setter @Builder @NoArgsConstructor @AllArgsConstructor
 public class ChatMessage {
 
+    // Valeurs en minuscules pour correspondre exactement au CHECK constraint de la migration SQL
+    public enum SenderRole { client, agent }
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;

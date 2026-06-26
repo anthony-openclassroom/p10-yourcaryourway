@@ -11,6 +11,9 @@ import lombok.*;
 @Getter @Setter @Builder @NoArgsConstructor @AllArgsConstructor
 public class ChatSession {
 
+    // Valeurs en minuscules pour correspondre exactement au CHECK constraint de la migration SQL
+    public enum Status { open, closed }
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
@@ -26,7 +29,7 @@ public class ChatSession {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     @Builder.Default
-    private SessionStatus status = SessionStatus.open;
+    private Status status = Status.open;
 
     @Column(name = "created_at")
     @Builder.Default
