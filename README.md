@@ -1,135 +1,259 @@
-# Your Car Your Way (YCYW)
+# YCYW — Tchat Support (POC SF-06)
 
-Plateforme web centralisée de location de voitures, remplaçant six applications indépendantes (FR, DE, ES, IT, UK, CA, US) par une solution unifiée, internationale et accessible.
+Proof of concept du module **SF-06 — Tchat support** de la plateforme **Your Car Your Way** — une messagerie temps réel entre un client et un agent support via WebSocket/STOMP.
 
-## Contexte
+> Ce dépôt couvre uniquement le module de tchat. L'architecture complète de la plateforme est documentée dans [`docs/architecture.md`](docs/architecture.md).
 
-YCYW opérait via des applications distinctes par marché (Java EE, PHP Laravel, Node.js, Spring Boot) sans API commune, avec des vulnérabilités de sécurité critiques (SHA-1 pour les mots de passe, TLS 1.0 actif, 41 % de dépendances avec CVE connues) et des performances insuffisantes (97,2 % de disponibilité, jusqu'à 4 % d'erreurs lors des pics).
-
-Ce projet définit l'architecture cible pour remplacer l'ensemble de ces systèmes.
+---
 
 ## Stack technique
 
-| Couche | Technologie | Justification |
-|---|---|---|
-| Frontend | Angular (TypeScript) | Stack validée en prod (US), CDK accessibilité, i18n natif |
-| Backend | Spring Boot (Java) | Stack validée en prod (US), maturité entreprise, OpenAPI 3.0 |
-| Base de données | PostgreSQL (AWS RDS Multi-AZ) | ACID obligatoire (réservation + paiement) |
-| Cache | Redis (AWS ElastiCache) | Sessions JWT révocables, cache recherches |
-| Paiement | Stripe | Imposé par le CDC, PCI DSS délégué |
-| Authentification | JWT (15 min) + Refresh Token Redis (30 j) | Révocable, scalable horizontalement |
-| CI/CD | GitHub Actions | lint → tests → scan sécu → build Docker → deploy AWS |
-| Hébergement | AWS (ECS Fargate, RDS, ElastiCache) | Équipes familières, failover Multi-AZ |
-| CDN / WAF | Cloudflare | Protection DDoS, cache statique, WAF |
+| Couche            | Technologie       | Version |
+| ----------------- | ----------------- | ------- |
+| Frontend          | Angular + SSR     | 20.x    |
+| Backend           | Spring Boot       | 4.1.0   |
+| Langage backend   | Java              | 21      |
+| Base de données   | PostgreSQL        | 16      |
+| Cache             | Redis             | 7       |
+| Migrations        | Flyway            | —       |
+| WebSocket         | STOMP over SockJS | —       |
+| Documentation API | SpringDoc OpenAPI | 2.5.0   |
 
-## Architecture
+---
 
-Architecture en couches, API-first. Pas de microservices en V1 (périmètre et taille d'équipe ne le justifient pas), mais préparée pour une extraction future des modules critiques (paiement, notifications).
-
-```
-Utilisateur
-    │ HTTPS / TLS 1.3
-    ▼
-CDN Cloudflare (WAF · cache statique · protection DDoS)
-    │
-    ▼
-Frontend Angular (SPA · @ngx-translate · WCAG 2.1 AA)
-    │ REST / JSON
-    ▼
-API Gateway nginx/Kong (JWT · rate limiting · logging)
-    │
-    ▼
-Backend Spring Boot
-    ├── Module Auth
-    ├── Module Profil
-    ├── Module Recherche
-    ├── Module Réservation ──► Stripe (Checkout + webhooks HMAC)
-    ├── Module Agences
-    └── Module Webhook
-    │               │
-    ▼               ▼
-PostgreSQL        Redis
-(RDS Multi-AZ)  (ElastiCache)
-```
-
-Infrastructure AWS : ALB en subnet public, ECS Fargate + RDS + ElastiCache en subnet privé, secrets dans AWS Secrets Manager, observabilité via CloudWatch + Grafana.
-
-## Fonctionnalités V1
-
-| Bloc | Fonctionnalités |
-|---|---|
-| SF-01 — Compte | Inscription, connexion/déconnexion, réinitialisation MDP, suppression de compte |
-| SF-02 — Profil | Consultation et modification des informations personnelles |
-| SF-03 — Recherche | Formulaire (ville départ/retour, dates, catégorie ACRISS), liste et détail des offres |
-| SF-04 — Réservation | Réserver, payer via Stripe, historique, modifier (≥ 48h), annuler |
-| SF-05 — API agences | CRUD complet exposé aux outils internes (auth par clé API) |
-| SF-06 — Tchat support | Session de tchat temps réel via WebSocket/STOMP avec une agence |
-
-**Hors périmètre V1** : application mobile, back-office employés, programme de fidélité, intégration GDS.
-
-## Règles métier clés
-
-- **Modification** : possible jusqu'à 48h avant le départ.
-- **Annulation** : remboursement intégral si > 7 jours avant le départ ; 25 % si < 7 jours ; aucun si < 48h.
-- **Suppression de compte** : saisie du mot de passe obligatoire ; bloquée si réservation active en cours.
-- **Paiement** : aucune donnée de carte bancaire ne transite par les serveurs YCYW (Stripe Checkout hébergé).
-- **Catégories véhicules** : norme ACRISS.
-
-## Modèle de données
+## Structure du projet
 
 ```
-User 1──N Booking N──1 Offer N──1 Agency (départ)
-                              N──1 Agency (retour)
+./
+├── backend/                    # Spring Boot API
+│   ├── src/
+│   │   ├── main/java/com/ycyw/chat/
+│   │   │   ├── config/         # WebSocket, CORS
+│   │   │   ├── controller/     # REST + WebSocket controllers
+│   │   │   ├── dto/            # Request / Response DTOs
+│   │   │   ├── model/          # Entités JPA
+│   │   │   ├── repository/     # Spring Data JPA
+│   │   │   └── service/        # Logique métier
+│   │   ├── main/resources/
+│   │   │   ├── application.properties
+│   │   │   ├── application-dev.properties
+│   │   │   └── db/migration/   # Scripts Flyway
+│   │   └── test/               # Tests unitaires (Mockito)
+│   ├── .env.sample             # Template des variables d'environnement
+│   └── pom.xml
+│
+├── frontend/                   # Angular 20 + SSR
+│   ├── src/
+│   │   ├── app/
+│   │   │   ├── chat/           # Feature module — tchat
+│   │   │   │   ├── chat/       # Composant, service, modèles
+│   │   │   │   ├── chat-module.ts
+│   │   │   │   └── chat-routing-module.ts
+│   │   │   ├── home/           # Page d'accueil
+│   │   │   ├── app-module.ts
+│   │   │   └── app-routing-module.ts
+│   │   ├── environments/
+│   │   │   ├── environment.ts              # Production
+│   │   │   └── environment.development.ts  # Développement
+│   │   └── styles.scss         # Variables CSS globales (couleurs de marque)
+│   └── package.json
+│
+├── docs/                       # Documentation projet
+│   ├── architecture.md
+│   ├── cahier_des_charges.md
+│   └── resume.md
+└── docker-compose.yml          # PostgreSQL + Redis
 ```
 
-| Entité | Champs clés |
-|---|---|
-| `users` | `id`, `email`, `password_hash` (Argon2id), `locale`, `deleted_at` (soft delete RGPD) |
-| `agencies` | `id`, `name`, `city`, `country` (ISO 3166-1), `timezone` (IANA) |
-| `offers` | `id`, `agency_departure_id`, `agency_return_id`, `vehicle_category` (ACRISS), `price_per_day`, `currency` (ISO 4217) |
-| `bookings` | `id`, `user_id`, `offer_id`, `status` (pending/confirmed/cancelled/completed), `stripe_payment_id` |
-| `chat_sessions` / `chat_messages` | Sessions de tchat support persistées en base |
+---
 
-## Intégrations tierces
+## Prérequis
 
-| Service | Usage | Mécanisme |
-|---|---|---|
-| Stripe | Paiement en ligne | Checkout hébergé + webhooks signés HMAC |
-| AWS SES / Resend | Emails transactionnels | Confirmation réservation, réinitialisation MDP |
-| API Agences | CRUD interne | Header `X-API-Key`, rate limiting, filtrage par `agency_id` |
+- **Java 21** — [sdkman.io](https://sdkman.io) recommandé
+- **Node.js 20+** + npm
+- **Docker & Docker Compose**
 
-## Exigences non fonctionnelles
+---
 
-| Axe | Cible |
-|---|---|
-| Disponibilité | ≥ 99,5 % (vs 97,2 % actuel) |
-| MTTR | < 30 min (vs 2h45 actuel) |
-| Performance | p95 < 500 ms, ≥ 500 req/s sans dégradation |
-| Taux d'erreur pics | < 0,5 % (vs 4 % actuel) |
-| Déploiement | Automatisé, rollback < 5 min |
-| Sécurité | 0 CVE critique/élevée, Argon2id, TLS 1.3, secrets managés |
-| Accessibilité | WCAG 2.1 AA / RGAA 4.1 |
-| i18n | FR, EN, DE, ES, IT minimum |
-| Conformité | RGPD (UE), Loi 25 (Québec) |
-| Éco-conception | Lighthouse Performance ≥ 85 |
+## Installation
 
-## Sécurité
+### 1. Cloner le dépôt
 
-| Pratique | Implémentation |
-|---|---|
-| Mots de passe | Argon2id |
-| Transport | HTTPS obligatoire, TLS 1.3 |
-| Secrets | AWS Secrets Manager, rotation automatique |
-| Injection SQL | ORM avec requêtes paramétrées uniquement |
-| CSRF | Cookie `SameSite=Strict` + vérification `Origin` |
-| Headers HTTP | CSP, X-Frame-Options, HSTS |
-| Dépendances | Scan `npm audit` en CI, blocage si CVE critique |
-| WebSocket | Authentification JWT à l'établissement de la connexion |
+```bash
+git clone <url-du-repo>
+cd ycyw
+```
+
+### 2. Démarrer les services (base de données + Redis)
+
+```bash
+docker compose up -d
+```
+
+PostgreSQL sera disponible sur `localhost:5433`, Redis sur `localhost:6379`.
+
+### 3. Configurer le backend
+
+```bash
+cd backend
+cp .env.sample .env
+```
+
+Éditer `.env` si nécessaire (les valeurs par défaut fonctionnent avec le `docker-compose.yml`) :
+
+```env
+SPRING_PROFILES_ACTIVE=dev
+
+DATABASE_URL=jdbc:postgresql://localhost:5433/ycyw_dev
+DATABASE_USERNAME=ycyw
+DATABASE_PASSWORD=dev_password
+
+FRONTEND_URL=http://localhost:4200
+```
+
+### 4. Installer les dépendances frontend
+
+```bash
+cd ../frontend
+npm install
+```
+
+---
+
+## Lancer le projet
+
+Ouvrir **deux terminaux**.
+
+**Terminal 1 — Backend**
+
+```bash
+cd backend
+./mvnw spring-boot:run
+```
+
+API disponible sur `http://localhost:8081`
+Swagger UI sur `http://localhost:8081/swagger-ui.html`
+
+**Terminal 2 — Frontend**
+
+```bash
+cd frontend
+npm start
+```
+
+Application disponible sur `http://localhost:4200`
+
+---
+
+## Utiliser le tchat (mode démo)
+
+Le POC simule une session entre deux rôles via deux onglets. Aucune authentification n'est requise.
+
+1. Ouvrir `http://localhost:4200` → cliquer **Contacter le support**
+2. Une session est créée automatiquement et l'URL contient `?sessionId=...&role=client`
+3. Copier le **lien agent** affiché dans le header du tchat
+4. Ouvrir ce lien dans un **second onglet** → vue agent active
+5. Les deux onglets communiquent en temps réel via WebSocket
+
+---
+
+## API REST
+
+Base URL : `http://localhost:8081/api`
+
+| Méthode | Endpoint                       | Description                         |
+| ------- | ------------------------------ | ----------------------------------- |
+| `POST`  | `/chat/sessions`               | Créer une session de tchat          |
+| `GET`   | `/chat/sessions/{id}/messages` | Récupérer l'historique des messages |
+| `PATCH` | `/chat/sessions/{id}/close`    | Fermer une session                  |
+
+La documentation complète (schémas, exemples) est disponible sur **Swagger UI** :
+`http://localhost:8081/swagger-ui.html`
+
+---
+
+## WebSocket (STOMP -> Simple Text Oriented Messaging Protocol)
+
+Point de connexion : `http://localhost:8081/ws-sockjs` (SockJS fallback activé)
+
+| Type          | Destination               | Description                         |
+| ------------- | ------------------------- | ----------------------------------- |
+| **Subscribe** | `/topic/chat/{sessionId}` | Recevoir les messages d'une session |
+| **Publish**   | `/app/chat/{sessionId}`   | Envoyer un message                  |
+
+**Format du message envoyé :**
+
+```json
+{
+	"content": "Bonjour, j'ai besoin d'aide.",
+	"senderRole": "client"
+}
+```
+
+**Format du message reçu :**
+
+```json
+{
+	"id": "uuid",
+	"sessionId": "uuid",
+	"senderRole": "client",
+	"content": "Bonjour, j'ai besoin d'aide.",
+	"sentAt": "2026-01-15T10:30:00Z"
+}
+```
+
+---
+
+## Base de données
+
+Les migrations sont gérées par **Flyway** et s'exécutent automatiquement au démarrage du backend.
+
+```sql
+chat_sessions
+  id          UUID PK
+  user_id     UUID          -- ID client (auth externe)
+  agency_id   UUID          -- ID agence (auth externe)
+  status      VARCHAR(10)   -- 'open' | 'closed'
+  created_at  TIMESTAMPTZ
+  closed_at   TIMESTAMPTZ
+
+chat_messages
+  id          UUID PK
+  session_id  UUID FK → chat_sessions(id)
+  sender_role VARCHAR(10)   -- 'client' | 'agent'
+  content     TEXT
+  sent_at     TIMESTAMPTZ
+```
+
+---
+
+## Tests
+
+```bash
+cd backend
+./mvnw test
+```
+
+Les tests utilisent **H2 en mémoire** — aucune base externe requise. Flyway est désactivé pour les tests (schéma créé par `ddl-auto=create-drop`).
+
+---
+
+## Variables d'environnement — référence complète
+
+| Variable                 | Défaut (`dev`)                              | Description                  |
+| ------------------------ | ------------------------------------------- | ---------------------------- |
+| `SPRING_PROFILES_ACTIVE` | `dev`                                       | Profil Spring actif          |
+| `DATABASE_URL`           | `jdbc:postgresql://localhost:5433/ycyw_dev` | URL JDBC PostgreSQL          |
+| `DATABASE_USERNAME`      | `ycyw`                                      | Utilisateur base de données  |
+| `DATABASE_PASSWORD`      | `dev_password`                              | Mot de passe base de données |
+| `FRONTEND_URL`           | `http://localhost:4200`                     | URL du frontend (CORS)       |
+
+---
 
 ## Documentation
 
-| Document | Description |
-|---|---|
-| [`docs/architecture.md`](docs/architecture.md) | Audit de l'existant, architecture cible, UML complet, modèle de données, choix technologiques |
-| [`docs/cahier_des_charges.md`](docs/cahier_des_charges.md) | Spécifications fonctionnelles détaillées, personas, règles métier |
-| [`docs/resume.md`](docs/resume.md) | Référence rapide — stack, entités, fonctionnalités, contraintes |
+| Document                                                   | Contenu                                                                  |
+| ---------------------------------------------------------- | ------------------------------------------------------------------------ |
+| [`docs/architecture.md`](docs/architecture.md)             | Architecture cible complète, audit de l'existant, UML, modèle de données |
+| [`docs/cahier_des_charges.md`](docs/cahier_des_charges.md) | Spécifications fonctionnelles, personas, règles métier                   |
+| [`docs/resume.md`](docs/resume.md)                         | Référence rapide — stack, entités, fonctionnalités, contraintes          |
