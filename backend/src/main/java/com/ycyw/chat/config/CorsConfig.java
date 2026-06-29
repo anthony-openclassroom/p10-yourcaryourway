@@ -17,7 +17,8 @@ public class CorsConfig {
         return new WebMvcConfigurer() {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
-                // Restreint aux origines connues via config — évite un wildcard "*" en prod
+                // Restreint aux origines connues via config,
+                // ⚠️ éviter un wildcard "*" en prod
                 registry.addMapping("/api/**")
                         .allowedOrigins(frontendUrl)
                         .allowedMethods("GET", "POST", "PATCH", "DELETE")

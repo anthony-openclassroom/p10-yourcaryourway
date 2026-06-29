@@ -213,7 +213,7 @@ flowchart LR
 ### Sécurité
 
 - Mots de passe hashés avec **Argon2id** (vainqueur Password Hashing Competition).
-- **HTTPS obligatoire**, TLS 1.2 minimum (TLS 1.3 recommandé).
+- **HTTPS obligatoire**, TLS 1.3. (Les applications actuelles FR/IT utilisent encore TLS 1.0 — identifié comme vulnérabilité critique dans l'audit de l'existant.)
 - Secrets stockés dans un **gestionnaire de secrets** (HashiCorp Vault ou équivalent cloud-native), jamais en dur dans le code.
 - Rotation automatique des secrets d'accès aux services tiers.
 - Protection contre OWASP Top 10 : injection SQL, XSS, CSRF, etc.
@@ -293,4 +293,63 @@ Le tableau ci-dessous en présente la vue synthétique. Le backlog est planifié
 | US#28 | Compatibilité lecteurs d'écran | Accessibilité | Haute | Sprint 7 | 5 | Backlog |
 
 **Total : 29 user stories — 111 story points — 3,3 mois**
+
+> Les critères d'acceptation détaillés pour chaque US sont disponibles sur Notion (lien ci-dessus). Les extraits clés ci-dessous couvrent les US à plus forte valeur métier.
+
+---
+
+## Critères d'acceptation — extraits clés
+
+### US#01 — Créer un compte
+
+**Valide si :**
+- Le formulaire exige un email valide et un mot de passe d'au moins 8 caractères.
+- Le mot de passe est hashé avec Argon2id avant stockage — jamais en clair.
+- Un email de confirmation est envoyé dans les 60 secondes.
+- Un email déjà utilisé retourne un message d'erreur explicite sans révéler si le compte existe.
+
+### US#10 — Supprimer son compte
+
+**Valide si :**
+- La suppression nécessite la saisie du mot de passe actuel.
+- Une réservation future active bloque la suppression (message d'erreur clair).
+- Les données personnelles sont anonymisées dans la base (soft delete via `deleted_at`).
+- Toutes les sessions actives sont immédiatement invalidées.
+
+### US#15 — Réserver une offre
+
+**Valide si :**
+- Les informations personnelles sont pré-remplies depuis le profil si disponibles.
+- Un récapitulatif complet (offre, dates, prix total, infos client) est affiché avant paiement.
+- La réservation est créée avec statut `pending` avant la redirection vers Stripe.
+- Après confirmation Stripe (webhook), le statut passe à `confirmed` et un email est envoyé.
+
+### US#20 — Modifier une réservation
+
+**Valide si :**
+- La modification est acceptée si la date de début est **à plus de 48 heures**.
+- La modification est refusée si la date de début est **à moins de 48 heures** (message explicite).
+- Le récapitulatif mis à jour est affiché avant confirmation.
+
+### US#21 — Annuler une réservation
+
+**Valide si :**
+
+| Délai avant départ | Remboursement attendu |
+|---|---|
+| Plus de 7 jours | 100 % du montant total |
+| Moins de 7 jours | 25 % du montant total |
+| Moins de 48 heures | 0 % (annulation impossible) |
+
+- Le montant remboursé est affiché avant confirmation de l'annulation.
+- Le statut passe à `cancelled` et `cancelled_at` est horodaté.
+
+### US#00 — Tchat support en temps réel (PoC)
+
+**Valide si :**
+- Un client peut ouvrir une session de tchat et envoyer un message.
+- Le message apparaît chez l'agent **sans rechargement de page**, en moins d'une seconde.
+- L'historique de la session est rechargé après reconnexion (persisté en base).
+- La fenêtre de tchat est navigable au clavier et compatible lecteurs d'écran (`role="log"`).
+- La fermeture de session est notifiée aux deux participants en temps réel.
 

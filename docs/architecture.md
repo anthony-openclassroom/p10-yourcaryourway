@@ -293,6 +293,7 @@ flowchart TB
         P3["Page Réservation"]
         P4["Page Profil"]
         P5["Page Historique"]
+        P6["Page Tchat (SF-06) ⭐ PoC"]
     end
 
     subgraph BE ["Backend API — Spring Boot"]
@@ -302,11 +303,12 @@ flowchart TB
         M4["Module Réservation"]
         M5["Module Agences"]
         M6["Module Webhook"]
+        M7["Module Tchat (SF-06) ⭐ PoC\nREST + WebSocket/STOMP"]
     end
 
     subgraph EXT ["Services externes"]
         STRIPE["Stripe"]
-        EMAIL["Service Email"]
+        EMAIL["Service Email (AWS SES)"]
     end
 
     DB[("PostgreSQL")]
@@ -317,12 +319,14 @@ flowchart TB
     P4 -->|"GET/PATCH /users/:id"| M2
     P5 -->|"GET /bookings"| M4
     P1 & P4 -->|"POST /auth"| M1
+    P6 -->|"REST + STOMP/WebSocket"| M7
 
     M4 -->|"createPaymentIntent"| STRIPE
     M6 -->|"webhook"| STRIPE
     M4 & M1 -->|"sendEmail"| EMAIL
 
     M1 & M2 & M3 & M4 & M5 --> DB
+    M7 -->|"chat_sessions, chat_messages"| DB
     M1 & M3 --> CACHE
 ```
 
@@ -334,7 +338,7 @@ classDiagram
         UUID id
         UUID userId
         UUID agencyId
-        Status status
+        String status
         DateTime createdAt
         DateTime closedAt
     }
@@ -342,27 +346,15 @@ classDiagram
     class ChatMessage {
         UUID id
         UUID sessionId
-        SenderRole senderRole
+        String senderRole
         String content
         DateTime sentAt
     }
 
-    class Status {
-        <<enumeration>>
-        open
-        closed
-    }
-
-    class SenderRole {
-        <<enumeration>>
-        client
-        agent
-    }
-
     ChatSession "1" --> "*" ChatMessage : contient
-    ChatSession --> Status : a un statut
-    ChatMessage --> SenderRole : envoyé par
 ```
+
+> `status` : `open` | `closed` — `senderRole` : `client` | `agent` | `system`
 
 > Les FK vers `users(id)` et `agencies(id)` sont présentes dans le schéma cible. Dans le PoC, elles sont simulées par des UUIDs fixes (`DEMO_USER_ID`, `DEMO_AGENCY_ID`) en l'absence des modules Auth et Agences.
 
@@ -565,9 +557,24 @@ sequenceDiagram
 
 Vérification de la signature webhook via `stripe.webhooks.constructEvent()` — toute requête sans signature valide est rejetée (HTTP 400).
 
-### 7.2 Service d'email
+### 7.2 Service d'email — AWS SES
 
-AWS SES ou Resend. Utilisé pour les confirmations de réservation et les réinitialisations de mot de passe.
+```mermaid
+sequenceDiagram
+    participant BE as Backend (Spring Boot)
+    participant SES as AWS SES
+    participant User as Utilisateur
+
+    Note over BE,User: Confirmation de réservation
+    BE->>SES: sendEmail(to, template, variables)
+    SES-->>User: Email HTML (confirmation + récapitulatif)
+
+    Note over BE,User: Réinitialisation de mot de passe
+    BE->>SES: sendEmail(to, reset-link, expiry=1h)
+    SES-->>User: Email HTML (lien sécurisé)
+```
+
+**Mécanisme** : l'email est envoyé de façon synchrone après confirmation du webhook Stripe (`payment_intent.succeeded`) pour les réservations, et directement depuis l'endpoint `POST /auth/forgot-password` pour les réinitialisations. Les templates HTML sont stockés côté backend. AWS SES est configuré avec un domaine vérifié (SPF, DKIM) pour éviter le classement en spam.
 
 ### 7.3 API Agences
 
