@@ -291,6 +291,50 @@ Les tests utilisent **H2 en mémoire** — aucune base externe requise. Flyway e
 
 ---
 
+## Dépannage
+
+### Le port 5433 est déjà utilisé
+
+Le `docker-compose.yml` expose PostgreSQL sur **5433** (et non 5432) pour éviter les conflits avec une installation PostgreSQL locale. Si 5433 est déjà pris :
+
+```bash
+# Identifier le processus qui utilise le port
+lsof -i :5433
+# Arrêter le conteneur en conflit si c'est un autre Docker
+docker ps
+docker stop <nom_du_conteneur>
+```
+
+### `./mvnw` — Permission refusée
+
+```bash
+chmod +x backend/mvnw
+```
+
+### Le backend démarre mais les migrations Flyway échouent
+
+Vérifier que le conteneur PostgreSQL est bien démarré avant de lancer le backend :
+
+```bash
+docker compose ps   # status doit être "running"
+docker compose logs db
+```
+
+### Angular ne se connecte pas au backend (erreur CORS)
+
+Vérifier que la variable `FRONTEND_URL` dans `.env` correspond exactement à l'URL utilisée par le navigateur (par défaut `http://localhost:4200`).
+
+### Je ne vois pas les messages en temps réel
+
+- Vérifier que les **deux onglets** utilisent le même `sessionId` dans l'URL.
+- Vérifier que le backend est démarré avant l'ouverture du frontend (la connexion WebSocket échoue silencieusement si le backend est absent).
+
+---
+
+> **Sécurité** : le fichier `.env` contient vos identifiants de base de données — ne le commitez jamais. Seul `.env.sample` (sans valeurs sensibles) doit être versionné.
+
+---
+
 ## Variables d'environnement — référence complète
 
 | Variable                 | Défaut (`dev`)                              | Description                  |
