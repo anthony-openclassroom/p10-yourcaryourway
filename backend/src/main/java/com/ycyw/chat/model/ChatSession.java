@@ -18,7 +18,7 @@ public class ChatSession {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    // user_id et agency_id sont gérés par le service d'auth externe — pas de @ManyToOne
+    // user_id et agency_id sont gérés par le service d'auth externe - pas de @ManyToOne
     @Column(name = "user_id", nullable = false)
     private UUID userId;
 

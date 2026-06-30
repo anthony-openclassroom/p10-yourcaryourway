@@ -20,7 +20,7 @@ public record OutboundMessageDto(
         );
     }
 
-    // Notification de fermeture de session — non persistée en base
+    // Notification de fermeture de session - non persistée en base
     public static OutboundMessageDto sessionClosed(UUID sessionId, String closedBy) {
         return new OutboundMessageDto(
                 UUID.randomUUID(), sessionId, ChatMessage.SenderRole.system,

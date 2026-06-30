@@ -12,14 +12,14 @@ import lombok.*;
 public class ChatMessage {
 
     // Valeurs en minuscules pour correspondre exactement au CHECK constraint de la migration SQL
-    // "system" n'est pas persisté en base — uniquement diffusé via WebSocket comme notification
+    // "system" n'est pas persisté en base - uniquement diffusé via WebSocket comme notification
     public enum SenderRole { client, agent, system }
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    // Clé étrangère vers ChatSession — UUID seul, pas de @ManyToOne pour éviter le chargement inutile
+    // Clé étrangère vers ChatSession - UUID seul, pas de @ManyToOne pour éviter le chargement inutile
     @Column(name = "session_id", nullable = false)
     private UUID sessionId;
 

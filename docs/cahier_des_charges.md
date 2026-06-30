@@ -1,4 +1,4 @@
-# Cahier des charges — Your Car Your Way
+# Cahier des charges - Your Car Your Way
 
 ## Objet du document
 
@@ -55,32 +55,32 @@ L'objectif est de remplacer l'ensemble de ces applications par une plateforme ce
 
 ### Personas
 
-#### Persona 1 — Client régulier (Maria, 34 ans, Barcelone)
+#### Persona 1 - Client régulier (Maria, 34 ans, Barcelone)
 
 - Utilise l'application depuis un smartphone en déplacement.
 - Effectue plusieurs locations par an pour des voyages professionnels.
 - Besoins : rapidité de réservation, historique accessible, modification facile.
 - Frustrations actuelles : devoir ressaisir ses informations à chaque réservation.
 
-#### Persona 2 — Client occasionnel (Thomas, 52 ans, Lyon)
+#### Persona 2 - Client occasionnel (Thomas, 52 ans, Lyon)
 
 - Peu à l'aise avec les interfaces numériques.
 - Réserve 1 à 2 fois par an pour des vacances.
 - Besoins : interface simple, messages d'erreur clairs, confirmation visible.
 - Exigences d'accessibilité : taille de police ajustable, contraste suffisant.
 
-#### Persona 3 — Utilisateur en situation de handicap (Amara, 29 ans, Londres)
+#### Persona 3 - Utilisateur en situation de handicap (Amara, 29 ans, Londres)
 
 - Malvoyante, utilise un lecteur d'écran (NVDA + Firefox).
 - Besoins : navigation clavier complète, labels ARIA cohérents, ordre de focus logique.
 - Exigences réglementaires : conformité WCAG 2.1 niveau AA, RGAA 4.1.
 
-#### Persona 4 — Agent en agence (Kenji, 41 ans, Toronto)
+#### Persona 4 - Agent en agence (Kenji, 41 ans, Toronto)
 
 - Accède à l'API pour consulter les réservations et mettre à jour les statuts.
 - Besoins : API stable, documentation claire, réponses rapides.
 
-### Parcours utilisateur principal — Réservation
+### Parcours utilisateur principal - Réservation
 
 ```mermaid
 flowchart LR
@@ -99,7 +99,7 @@ flowchart LR
 
 ## Spécifications fonctionnelles
 
-### SF-01 — Authentification et gestion de compte
+### SF-01 - Authentification et gestion de compte
 
 | ID       | Fonctionnalité                                       | Priorité |
 | -------- | ---------------------------------------------------- | -------- |
@@ -110,7 +110,7 @@ flowchart LR
 
 **Règle métier** : La suppression de compte nécessite la saisie du mot de passe actuel. Les données personnelles sont anonymisées conformément au RGPD (droit à l'oubli). Les réservations futures actives bloquent la suppression jusqu'à leur annulation ou expiration.
 
-### SF-02 — Gestion du profil
+### SF-02 - Gestion du profil
 
 | ID       | Fonctionnalité                                            | Priorité |
 | -------- | --------------------------------------------------------- | -------- |
@@ -120,7 +120,7 @@ flowchart LR
 | SF-02-04 | Modifier son mot de passe                                 | Haute    |
 | SF-02-05 | Gérer ses préférences de communication (emails marketing) | Basse    |
 
-### SF-03 — Recherche de véhicules
+### SF-03 - Recherche de véhicules
 
 | ID       | Fonctionnalité                            | Priorité |
 | -------- | ----------------------------------------- | -------- |
@@ -141,7 +141,7 @@ flowchart LR
 
 **Catégories ACRISS** : L'application utilise la classification ACRISS standard (Mini, Économique, Compacte, Intermédiaire, Standard, Plein format, Premium, Luxe, SUV, Cabriolet, Monospace, etc.).
 
-### SF-04 — Réservation
+### SF-04 - Réservation
 
 | ID       | Fonctionnalité                          | Priorité |
 | -------- | --------------------------------------- | -------- |
@@ -163,7 +163,7 @@ flowchart LR
     - Moins de 48 heures avant le départ : aucun remboursement, modification impossible.
 - **Paiement** : externalisé via Stripe. Aucune donnée de carte bancaire ne transite par les serveurs YCYW.
 
-### SF-05 — API interne (usage agences)
+### SF-05 - API interne (usage agences)
 
 | ID       | Fonctionnalité                              | Priorité |
 | -------- | ------------------------------------------- | -------- |
@@ -173,7 +173,7 @@ flowchart LR
 | SF-05-04 | CRUD agences                                | Haute    |
 | SF-05-05 | Authentification par clé API ou JWT service | Haute    |
 
-### SF-06 — Tchat support en temps réel
+### SF-06 - Tchat support en temps réel
 
 | ID       | Fonctionnalité                                             | Priorité |
 | -------- | ---------------------------------------------------------- | -------- |
@@ -185,7 +185,7 @@ flowchart LR
 **Règles métier** :
 
 - Un client connecté peut ouvrir une session de tchat avec l'agence de son choix (depuis la page agence ou depuis une réservation active).
-- Les messages sont transmis en temps réel via WebSocket (protocole STOMP) — aucun rechargement de page requis.
+- Les messages sont transmis en temps réel via WebSocket (protocole STOMP) - aucun rechargement de page requis.
 - L'historique de la conversation est persisté en base de données et rechargé à la réouverture de la session.
 - Une session peut être fermée par le client ou l'agent ; elle passe alors au statut `closed`.
 - La connexion WebSocket est authentifiée par JWT (le token est transmis à l'établissement de la connexion).
@@ -214,7 +214,7 @@ flowchart LR
 ### Sécurité
 
 - Mots de passe hashés avec **Argon2id** (vainqueur Password Hashing Competition).
-- **HTTPS obligatoire**, TLS 1.3. (Les applications actuelles FR/IT utilisent encore TLS 1.0 — identifié comme vulnérabilité critique dans l'audit de l'existant.)
+- **HTTPS obligatoire**, TLS 1.3. (Les applications actuelles FR/IT utilisent encore TLS 1.0 - identifié comme vulnérabilité critique dans l'audit de l'existant.)
 - Secrets stockés dans un **gestionnaire de secrets** (HashiCorp Vault ou équivalent cloud-native), jamais en dur dans le code.
 - Rotation automatique des secrets d'accès aux services tiers.
 - Protection contre OWASP Top 10 : injection SQL, XSS, CSRF, etc.
@@ -254,7 +254,7 @@ flowchart LR
 
 ---
 
-## Product Backlog — User Stories
+## Product Backlog - User Stories
 
 Le backlog complet (vue Kanban, chronologie, filtres par sprint et critères d'acceptation) est disponible sur Notion :
 **[→ Voir le backlog sur Notion](https://anthony-gorski.notion.site/Your-Car-Your-Way-38a381ed55f480dbaf15e09569dc617c?pvs=74)** _(lien externe)_
@@ -285,14 +285,14 @@ Le tableau ci-dessous en présente la vue synthétique. Le backlog est planifié
 | US#19 | Consulter l'historique des réservations | Réservation   | Haute    | Sprint 4 | 3   | Backlog  |
 | US#20 | Modifier une réservation                | Réservation   | Haute    | Sprint 4 | 5   | Backlog  |
 | US#21 | Annuler une réservation                 | Réservation   | Haute    | Sprint 5 | 5   | Backlog  |
-| US#22 | API — CRUD utilisateurs                 | API Agences   | Haute    | Sprint 6 | 5   | Backlog  |
-| US#23 | API — CRUD réservations                 | API Agences   | Haute    | Sprint 6 | 5   | Backlog  |
-| US#24 | API — CRUD offres                       | API Agences   | Haute    | Sprint 6 | 4   | Backlog  |
-| US#25 | API — CRUD agences                      | API Agences   | Haute    | Sprint 7 | 3   | Backlog  |
-| US#26 | API — Authentification par clé          | API Agences   | Haute    | Sprint 7 | 3   | Backlog  |
+| US#22 | API - CRUD utilisateurs                 | API Agences   | Haute    | Sprint 6 | 5   | Backlog  |
+| US#23 | API - CRUD réservations                 | API Agences   | Haute    | Sprint 6 | 5   | Backlog  |
+| US#24 | API - CRUD offres                       | API Agences   | Haute    | Sprint 6 | 4   | Backlog  |
+| US#25 | API - CRUD agences                      | API Agences   | Haute    | Sprint 7 | 3   | Backlog  |
+| US#26 | API - Authentification par clé          | API Agences   | Haute    | Sprint 7 | 3   | Backlog  |
 | US#27 | Navigation entièrement au clavier       | Accessibilité | Haute    | Sprint 7 | 5   | Backlog  |
 | US#28 | Compatibilité lecteurs d'écran          | Accessibilité | Haute    | Sprint 7 | 5   | Backlog  |
 
-**Total : 29 user stories — 111 story points — 3,3 mois**
+**Total : 29 user stories - 111 story points - 3,3 mois**
 
 > Les critères d'acceptation détaillés pour chaque US sont disponibles sur Notion (lien ci-dessus). Les extraits clés ci-dessous couvrent les US à plus forte valeur métier.

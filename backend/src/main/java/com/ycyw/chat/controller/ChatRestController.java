@@ -44,7 +44,7 @@ public class ChatRestController {
             @PathVariable UUID sessionId,
             @RequestParam(defaultValue = "l'un des participants") String closedBy) {
         chatService.closeSession(sessionId);
-        // Notifie les deux onglets via WebSocket — non persisté en base
+        // Notifie les deux onglets via WebSocket - non persisté en base
         messagingTemplate.convertAndSend(
                 "/topic/chat/" + sessionId,
                 OutboundMessageDto.sessionClosed(sessionId, closedBy)

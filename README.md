@@ -1,6 +1,6 @@
-# YCYW — Tchat Support (POC SF-06)
+# YCYW - Tchat Support (POC SF-06)
 
-Proof of concept du module **SF-06 — Tchat support** de la plateforme **Your Car Your Way** — une messagerie temps réel entre un client et un agent support via WebSocket/STOMP.
+Proof of concept du module **SF-06 - Tchat support** de la plateforme **Your Car Your Way** - une messagerie temps réel entre un client et un agent support via WebSocket/STOMP.
 
 > Ce dépôt couvre uniquement le module de tchat. L'architecture complète de la plateforme est documentée dans [`docs/architecture.md`](docs/architecture.md).
 
@@ -14,8 +14,8 @@ Proof of concept du module **SF-06 — Tchat support** de la plateforme **Your C
 | Backend           | Spring Boot       | 4.1.0   |
 | Langage backend   | Java              | 21      |
 | Base de données   | PostgreSQL        | 16      |
-| Migrations        | Flyway            | —       |
-| WebSocket         | STOMP over SockJS | —       |
+| Migrations        | Flyway            | -       |
+| WebSocket         | STOMP over SockJS | -       |
 | Documentation API | SpringDoc OpenAPI | 2.5.0   |
 
 ---
@@ -44,7 +44,7 @@ Proof of concept du module **SF-06 — Tchat support** de la plateforme **Your C
 ├── frontend/                   # Angular 20 + SSR
 │   ├── src/
 │   │   ├── app/
-│   │   │   ├── chat/           # Feature module — tchat
+│   │   │   ├── chat/           # Feature module - tchat
 │   │   │   │   ├── chat/       # Composant, service, modèles
 │   │   │   │   ├── chat-module.ts
 │   │   │   │   └── chat-routing-module.ts
@@ -111,7 +111,7 @@ Installer : [docs.docker.com/get-docker](https://docs.docker.com/get-docker/)
 
 ### Maven (optionnel)
 
-Le projet embarque le **Maven Wrapper** (`./mvnw`) — aucune installation locale requise. Maven n'est nécessaire que si tu veux utiliser une installation système existante.
+Le projet embarque le **Maven Wrapper** (`./mvnw`) - aucune installation locale requise. Maven n'est nécessaire que si tu veux utiliser une installation système existante.
 
 ---
 
@@ -177,7 +177,7 @@ npm install
 
 Ouvrir **deux terminaux**.
 
-**Terminal 1 — Backend**
+**Terminal 1 - Backend**
 
 ```bash
 cd backend
@@ -187,7 +187,7 @@ cd backend
 API disponible sur `http://localhost:8081`
 Swagger UI sur `http://localhost:8081/swagger-ui.html`
 
-**Terminal 2 — Frontend**
+**Terminal 2 - Frontend**
 
 ```bash
 cd frontend
@@ -287,7 +287,7 @@ cd backend
 ./mvnw test
 ```
 
-Les tests utilisent **H2 en mémoire** — aucune base externe requise. Flyway est désactivé pour les tests (schéma créé par `ddl-auto=create-drop`).
+Les tests utilisent **H2 en mémoire** - aucune base externe requise. Flyway est désactivé pour les tests (schéma créé par `ddl-auto=create-drop`).
 
 ---
 
@@ -305,7 +305,7 @@ docker ps
 docker stop <nom_du_conteneur>
 ```
 
-### `./mvnw` — Permission refusée
+### `./mvnw` - Permission refusée
 
 ```bash
 chmod +x backend/mvnw
@@ -331,11 +331,11 @@ Vérifier que la variable `FRONTEND_URL` dans `.env` correspond exactement à l'
 
 ---
 
-> **Sécurité** : le fichier `.env` contient vos identifiants de base de données — ne le commitez jamais. Seul `.env.sample` (sans valeurs sensibles) doit être versionné.
+> **Sécurité** : le fichier `.env` contient vos identifiants de base de données - ne le commitez jamais. Seul `.env.sample` (sans valeurs sensibles) doit être versionné.
 
 ---
 
-## Variables d'environnement — référence complète
+## Variables d'environnement - référence complète
 
 | Variable                 | Défaut (`dev`)                              | Description                  |
 | ------------------------ | ------------------------------------------- | ---------------------------- |
@@ -353,4 +353,4 @@ Vérifier que la variable `FRONTEND_URL` dans `.env` correspond exactement à l'
 | ---------------------------------------------------------- | ------------------------------------------------------------------------ |
 | [`docs/architecture.md`](docs/architecture.md)             | Architecture cible complète, audit de l'existant, UML, modèle de données |
 | [`docs/cahier_des_charges.md`](docs/cahier_des_charges.md) | Spécifications fonctionnelles, personas, règles métier                   |
-| [`docs/resume.md`](docs/resume.md)                         | Référence rapide — stack, entités, fonctionnalités, contraintes          |
+| [`docs/resume.md`](docs/resume.md)                         | Référence rapide - stack, entités, fonctionnalités, contraintes          |

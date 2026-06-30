@@ -1,4 +1,4 @@
-# Proposition d'architecture — Your Car Your Way
+# Proposition d'architecture - Your Car Your Way
 
 ## Sommaire
 
@@ -28,13 +28,13 @@
 
 L'audit s'appuie sur les cinq critères suivants, définis en cohérence avec les objectifs de la refonte. La conclusion (§1.4) évalue l'existant au regard de chacun d'eux.
 
-| Critère | Définition | Cible visée |
-| --- | --- | --- |
-| **Disponibilité** | Taux d'uptime annuel et temps de récupération après incident (MTTR) | ≥ 99,5 %, MTTR < 30 min |
-| **Sécurité** | Robustesse face aux CVE, algorithmes de hashage, chiffrement, gestion des secrets | 0 CVE critique, Argon2id, TLS 1.3 |
-| **Performance** | Capacité de charge (req/s) et taux d'erreur lors des pics saisonniers | ≥ 500 req/s, < 0,5 % erreurs |
+| Critère            | Définition                                                                               | Cible visée                              |
+| ------------------ | ---------------------------------------------------------------------------------------- | ---------------------------------------- |
+| **Disponibilité**  | Taux d'uptime annuel et temps de récupération après incident (MTTR)                      | ≥ 99,5 %, MTTR < 30 min                  |
+| **Sécurité**       | Robustesse face aux CVE, algorithmes de hashage, chiffrement, gestion des secrets        | 0 CVE critique, Argon2id, TLS 1.3        |
+| **Performance**    | Capacité de charge (req/s) et taux d'erreur lors des pics saisonniers                    | ≥ 500 req/s, < 0,5 % erreurs             |
 | **Maintenabilité** | Cohérence du code, automatisation des déploiements, délai de stabilisation après release | Déploiement automatisé, rollback < 5 min |
-| **Évolutivité** | Capacité à intégrer de nouveaux marchés ou fonctionnalités sans refonte majeure | Architecture unifiée, API-first |
+| **Évolutivité**    | Capacité à intégrer de nouveaux marchés ou fonctionnalités sans refonte majeure          | Architecture unifiée, API-first          |
 
 ---
 
@@ -79,11 +79,11 @@ L'audit s'appuie sur les cinq critères suivants, définis en cohérence avec le
 
 | Critère        | Évaluation                                                                |
 | -------------- | ------------------------------------------------------------------------- |
-| Disponibilité  | Non satisfait — FR/DE/ES/IT en dessous de 99 %, MTTR incompatible        |
-| Sécurité       | Non satisfait — vulnérabilités critiques sur la majorité des applications |
-| Performance    | Non satisfait — aucune application n'atteint la charge cible de 500 req/s |
-| Maintenabilité | Non satisfait — 4 codebases sans partage, déploiements manuels            |
-| Évolutivité    | Partiellement satisfait — US containerisée, mais aucune API unifiée       |
+| Disponibilité  | Non satisfait - FR/DE/ES/IT en dessous de 99 %, MTTR incompatible         |
+| Sécurité       | Non satisfait - vulnérabilités critiques sur la majorité des applications |
+| Performance    | Non satisfait - aucune application n'atteint la charge cible de 500 req/s |
+| Maintenabilité | Non satisfait - 4 codebases sans partage, déploiements manuels            |
+| Évolutivité    | Partiellement satisfait - US containerisée, mais aucune API unifiée       |
 
 Une refonte sur une architecture unifiée est justifiée.
 
@@ -107,16 +107,16 @@ Une refonte sur une architecture unifiée est justifiée.
 
 ## 3. Architecture cible
 
-Architecture en couches avec API-first, déployée sur infrastructure cloud managée. Pas de microservices en V1 — la taille de l'équipe et le périmètre ne le justifient pas — mais préparée pour une extraction future des modules critiques (paiement, notifications).
+Architecture en couches avec API-first, déployée sur infrastructure cloud managée. Pas de microservices en V1 - la taille de l'équipe et le périmètre ne le justifient pas - mais préparée pour une extraction future des modules critiques (paiement, notifications).
 
 ### 3.1 Couches applicatives
 
 ```mermaid
 flowchart TD
-    CDN["<b>CDN / Edge</b> — Cloudflare\nCache statique · WAF · Protection DDoS"]
-    FE["<b>Frontend</b> — Angular\nSPA · @ngx-translate · WCAG 2.1 AA"]
-    GW["<b>API Gateway</b> — nginx / Kong\nAuth JWT · Rate limiting · Logging"]
-    BE["<b>Backend API</b> — Spring Boot (Java)\nAuth · Profil · Recherche · Réservation · Agences"]
+    CDN["<b>CDN / Edge</b> - Cloudflare\nCache statique · WAF · Protection DDoS"]
+    FE["<b>Frontend</b> - Angular\nSPA · @ngx-translate · WCAG 2.1 AA"]
+    GW["<b>API Gateway</b> - nginx / Kong\nAuth JWT · Rate limiting · Logging"]
+    BE["<b>Backend API</b> - Spring Boot (Java)\nAuth · Profil · Recherche · Réservation · Agences"]
     STRIPE["<b>Stripe</b>\nPaiement · Webhooks"]
     DB["<b>PostgreSQL</b>\nBase de données principale"]
     REDIS["<b>Redis</b>\nCache sessions · Cache recherches"]
@@ -144,7 +144,7 @@ flowchart TD
 flowchart LR
     Client(["👤 Client"])
     Agent(["👤 Agent (agence)"])
-    Stripe(["⚙️ Stripe — service externe"])
+    Stripe(["⚙️ Stripe - service externe"])
 
     subgraph YCYW ["Système YCYW"]
         UC1["Gérer son profil"]
@@ -164,7 +164,7 @@ flowchart LR
     Agent --> UC6
 ```
 
-### 4.2 Diagramme de séquence — Réservation
+### 4.2 Diagramme de séquence - Réservation
 
 ```mermaid
 sequenceDiagram
@@ -287,7 +287,7 @@ flowchart TD
 
 ```mermaid
 flowchart TB
-    subgraph FE ["Frontend — Angular"]
+    subgraph FE ["Frontend - Angular"]
         P1["Page Accueil / Recherche"]
         P2["Page Résultats"]
         P3["Page Réservation"]
@@ -296,7 +296,7 @@ flowchart TB
         P6["Page Tchat (SF-06) ⭐ PoC"]
     end
 
-    subgraph BE ["Backend API — Spring Boot"]
+    subgraph BE ["Backend API - Spring Boot"]
         M1["Module Auth"]
         M2["Module Profil"]
         M3["Module Recherche"]
@@ -330,7 +330,7 @@ flowchart TB
     M1 & M3 --> CACHE
 ```
 
-### 4.6 Diagramme de classes — Module Tchat (SF-06)
+### 4.6 Diagramme de classes - Module Tchat (SF-06)
 
 ```mermaid
 classDiagram
@@ -354,7 +354,7 @@ classDiagram
     ChatSession "1" --> "*" ChatMessage : contient
 ```
 
-> `status` : `open` | `closed` — `senderRole` : `client` | `agent` | `system`
+> `status` : `open` | `closed` - `senderRole` : `client` | `agent` | `system`
 
 > Les FK vers `users(id)` et `agencies(id)` sont présentes dans le schéma cible. Dans le PoC, elles sont simulées par des UUIDs fixes (`DEMO_USER_ID`, `DEMO_AGENCY_ID`) en l'absence des modules Auth et Agences.
 
@@ -474,59 +474,59 @@ Déploiement progressif par marché (UK en premier), avec import des données hi
 
 ## 6. Sélection et justification des technologies
 
-### 6.1 Frontend — Angular
+### 6.1 Frontend - Angular
 
-| Critère              | Angular         | Next.js (React) | Vue.js / Nuxt |
-| -------------------- | --------------- | --------------- | ------------- |
-| TypeScript           | Natif           | Natif           | Optionnel     |
-| i18n intégré         | ✅ @ngx-translate | ✅ next-intl   | ✅ vue-i18n   |
-| SSR                  | ✅ Angular SSR  | ✅ natif        | ✅ Nuxt       |
-| Accessibilité (CDK)  | ✅ Angular CDK  | Radix UI        | Headless UI   |
-| Déjà utilisé chez YCYW | États-Unis    | Canada          | Non           |
+| Critère                | Angular           | Next.js (React) | Vue.js / Nuxt |
+| ---------------------- | ----------------- | --------------- | ------------- |
+| TypeScript             | Natif             | Natif           | Optionnel     |
+| i18n intégré           | ✅ @ngx-translate | ✅ next-intl    | ✅ vue-i18n   |
+| SSR                    | ✅ Angular SSR    | ✅ natif        | ✅ Nuxt       |
+| Accessibilité (CDK)    | ✅ Angular CDK    | Radix UI        | Headless UI   |
+| Déjà utilisé chez YCYW | États-Unis        | Canada          | Non           |
 
 **Choix retenu : Angular.** Stack déjà en production aux États-Unis, structure stricte adaptée à une application d'entreprise, TypeScript natif, Angular CDK pour l'accessibilité.
 
-### 6.2 Backend — Spring Boot (Java)
+### 6.2 Backend - Spring Boot (Java)
 
-| Critère               | Spring Boot         | NestJS              | Express.js |
-| --------------------- | ------------------- | ------------------- | ---------- |
-| Structure             | Opinionée (Spring)  | Opinionée (modules) | Libre      |
-| OpenAPI auto-généré   | ✅ Springdoc        | ✅ @nestjs/swagger  | Manuel     |
-| Maturité / robustesse | Très élevée         | Élevée              | Moyenne    |
+| Critère                | Spring Boot        | NestJS              | Express.js |
+| ---------------------- | ------------------ | ------------------- | ---------- |
+| Structure              | Opinionée (Spring) | Opinionée (modules) | Libre      |
+| OpenAPI auto-généré    | ✅ Springdoc       | ✅ @nestjs/swagger  | Manuel     |
+| Maturité / robustesse  | Très élevée        | Élevée              | Moyenne    |
 | Déjà utilisé chez YCYW | États-Unis         | Non                 | Canada     |
 
 **Choix retenu : Spring Boot.** Référence en environnement d'entreprise, déjà en production US, documentation API auto-générée via Springdoc (OpenAPI 3.0).
 
-### 6.3 Base de données — PostgreSQL
+### 6.3 Base de données - PostgreSQL
 
-| Critère                    | PostgreSQL | MySQL | MongoDB   |
-| -------------------------- | ---------- | ----- | --------- |
-| Transactions ACID          | ✅         | ✅    | Partiel   |
-| Modèle relationnel         | ✅         | ✅    | ❌        |
-| UUID natif                 | ✅         | Via extension | ✅   |
-| Adapté réservations/paiements | ✅      | ✅    | ❌        |
+| Critère                       | PostgreSQL | MySQL         | MongoDB |
+| ----------------------------- | ---------- | ------------- | ------- |
+| Transactions ACID             | ✅         | ✅            | Partiel |
+| Modèle relationnel            | ✅         | ✅            | ❌      |
+| UUID natif                    | ✅         | Via extension | ✅      |
+| Adapté réservations/paiements | ✅         | ✅            | ❌      |
 
 **Choix retenu : PostgreSQL.** Modèle fortement relationnel, transactions ACID indispensables entre réservation et confirmation de paiement.
 
-### 6.4 Cache — Redis
+### 6.4 Cache - Redis
 
 Stockage des sessions JWT avec révocation immédiate (suppression de compte, déconnexion forcée) et cache des résultats de recherche pour absorber les pics saisonniers.
 
-### 6.5 Paiement — Stripe
+### 6.5 Paiement - Stripe
 
 Imposé par le cahier des charges. Stripe Checkout (page hébergée) : aucune donnée CB sur les serveurs YCYW, conformité PCI DSS déléguée. Webhooks pour la confirmation asynchrone.
 
-### 6.6 Authentification — JWT + Redis
+### 6.6 Authentification - JWT + Redis
 
-| Critère                       | JWT seul | Sessions serveur | JWT + Refresh Redis |
-| ----------------------------- | -------- | ---------------- | ------------------- |
-| Scalabilité horizontale       | ✅       | ❌               | ✅                  |
-| Révocation immédiate          | ❌       | ✅               | ✅                  |
-| Adapté suppression de compte  | ❌       | ✅               | ✅                  |
+| Critère                      | JWT seul | Sessions serveur | JWT + Refresh Redis |
+| ---------------------------- | -------- | ---------------- | ------------------- |
+| Scalabilité horizontale      | ✅       | ❌               | ✅                  |
+| Révocation immédiate         | ❌       | ✅               | ✅                  |
+| Adapté suppression de compte | ❌       | ✅               | ✅                  |
 
 **Choix retenu :** Access Token JWT (15 min) + Refresh Token révocable en Redis (30 jours).
 
-### 6.7 CI/CD — GitHub Actions
+### 6.7 CI/CD - GitHub Actions
 
 Pipeline : lint → tests → scan sécurité → build image Docker → déploiement AWS.
 
@@ -555,9 +555,9 @@ sequenceDiagram
     BE-->>Client: Email de confirmation
 ```
 
-Vérification de la signature webhook via `stripe.webhooks.constructEvent()` — toute requête sans signature valide est rejetée (HTTP 400).
+Vérification de la signature webhook via `stripe.webhooks.constructEvent()` - toute requête sans signature valide est rejetée (HTTP 400).
 
-### 7.2 Service d'email — AWS SES
+### 7.2 Service d'email - AWS SES
 
 ```mermaid
 sequenceDiagram
@@ -598,35 +598,35 @@ Clé API stockée dans AWS Secrets Manager. Opérations filtrées par `agency_id
 
 ### 8.1 Sécurité
 
-| Pratique      | Implémentation                                                 |
-| ------------- | -------------------------------------------------------------- |
-| Mots de passe | Argon2id                                                       |
-| Transport     | HTTPS obligatoire, TLS 1.3                                     |
-| Secrets       | AWS Secrets Manager, jamais en dur dans le code                |
-| Headers HTTP  | CSP, X-Frame-Options, HSTS                                     |
-| Injection SQL | ORM avec requêtes paramétrées uniquement                       |
-| CSRF          | Cookie SameSite=Strict + vérification Origin                   |
-| Dépendances   | Scan `npm audit` en CI, blocage si CVE critique                |
+| Pratique      | Implémentation                                  |
+| ------------- | ----------------------------------------------- |
+| Mots de passe | Argon2id                                        |
+| Transport     | HTTPS obligatoire, TLS 1.3                      |
+| Secrets       | AWS Secrets Manager, jamais en dur dans le code |
+| Headers HTTP  | CSP, X-Frame-Options, HSTS                      |
+| Injection SQL | ORM avec requêtes paramétrées uniquement        |
+| CSRF          | Cookie SameSite=Strict + vérification Origin    |
+| Dépendances   | Scan `npm audit` en CI, blocage si CVE critique |
 
 ### 8.2 Accessibilité
 
-| Critère              | Mesure                                                              |
-| -------------------- | ------------------------------------------------------------------- |
-| Structure sémantique | HTML5 natif (`<main>`, `<nav>`, `<section>`, `<article>`)           |
-| Navigation clavier   | Focus visible, pas de pièges au clavier                             |
-| Images               | `alt` descriptif sur images porteuses, `alt=""` sur décoratives     |
-| Formulaires          | `<label>` explicite, `aria-describedby` pour erreurs                |
-| Contraste            | ≥ 4,5:1 (texte normal), ≥ 3:1 (texte large) — vérifié par axe-core |
-| Lecteurs d'écran     | `role="alert"` pour les messages dynamiques                         |
+| Critère              | Mesure                                                             |
+| -------------------- | ------------------------------------------------------------------ |
+| Structure sémantique | HTML5 natif (`<main>`, `<nav>`, `<section>`, `<article>`)          |
+| Navigation clavier   | Focus visible, pas de pièges au clavier                            |
+| Images               | `alt` descriptif sur images porteuses, `alt=""` sur décoratives    |
+| Formulaires          | `<label>` explicite, `aria-describedby` pour erreurs               |
+| Contraste            | ≥ 4,5:1 (texte normal), ≥ 3:1 (texte large) - vérifié par axe-core |
+| Lecteurs d'écran     | `role="alert"` pour les messages dynamiques                        |
 | Validation           | Audit automatisé `axe-core` en CI + revue manuelle trimestrielle   |
 
 ### 8.3 Impact écologique
 
-| Pratique        | Détail                                                            |
-| --------------- | ----------------------------------------------------------------- |
-| Assets          | WebP/AVIF, lazy loading natif                                     |
-| Bundle          | Lazy-loading de modules Angular, code splitting par route         |
-| Requêtes réseau | Cache HTTP (ETag, Cache-Control), pagination serveur              |
-| Hébergement     | AWS régions européennes (énergie renouvelable ~100 %)             |
-| Monitoring      | Lighthouse Performance ≥ 85 requis en CI                         |
-| Base de données | Indexes optimisés, requêtes N+1 interdites                        |
+| Pratique        | Détail                                                    |
+| --------------- | --------------------------------------------------------- |
+| Assets          | WebP/AVIF, lazy loading natif                             |
+| Bundle          | Lazy-loading de modules Angular, code splitting par route |
+| Requêtes réseau | Cache HTTP (ETag, Cache-Control), pagination serveur      |
+| Hébergement     | AWS régions européennes (énergie renouvelable ~100 %)     |
+| Monitoring      | Lighthouse Performance ≥ 85 requis en CI                  |
+| Base de données | Indexes optimisés, requêtes N+1 interdites                |

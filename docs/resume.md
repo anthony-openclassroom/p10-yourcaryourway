@@ -1,4 +1,4 @@
-# Résumé du projet — Your Car Your Way
+# Résumé du projet - Your Car Your Way
 
 Référence rapide pour l'équipe. Pour le détail complet : [architecture.md](architecture.md) et [cahier_des_charges.md](cahier_des_charges.md).
 
@@ -12,29 +12,29 @@ Application web centralisée de location de voitures, remplaçant 6 applications
 
 ## Stack technique retenue
 
-| Couche | Technologie | Pourquoi |
-|---|---|---|
-| Frontend | Angular (TypeScript) | Stack validée en production (US), CDK accessibilité |
-| Backend | Spring Boot (Java) | Stack validée en production (US), maturité entreprise |
-| Base de données | PostgreSQL (AWS RDS) | ACID, transactions réservation/paiement |
-| Cache | Redis (AWS ElastiCache) | Sessions, cache recherches |
-| Paiement | Stripe | Imposé CDC, PCI DSS délégué |
-| Authentification | JWT (access 15 min) + Refresh Token Redis | Révocable, scalable |
-| CI/CD | GitHub Actions | Natif, pipeline lint→test→build→deploy |
-| Hébergement | AWS (ECS Fargate, RDS, ElastiCache) | Équipes familières, Multi-AZ |
-| CDN / WAF | Cloudflare | Filtrage DDoS, cache statique |
+| Couche           | Technologie                               | Pourquoi                                              |
+| ---------------- | ----------------------------------------- | ----------------------------------------------------- |
+| Frontend         | Angular (TypeScript)                      | Stack validée en production (US), CDK accessibilité   |
+| Backend          | Spring Boot (Java)                        | Stack validée en production (US), maturité entreprise |
+| Base de données  | PostgreSQL (AWS RDS)                      | ACID, transactions réservation/paiement               |
+| Cache            | Redis (AWS ElastiCache)                   | Sessions, cache recherches                            |
+| Paiement         | Stripe                                    | Imposé CDC, PCI DSS délégué                           |
+| Authentification | JWT (access 15 min) + Refresh Token Redis | Révocable, scalable                                   |
+| CI/CD            | GitHub Actions                            | Natif, pipeline lint→test→build→deploy                |
+| Hébergement      | AWS (ECS Fargate, RDS, ElastiCache)       | Équipes familières, Multi-AZ                          |
+| CDN / WAF        | Cloudflare                                | Filtrage DDoS, cache statique                         |
 
 ---
 
-## Architecture — Vue synthétique
+## Architecture - Vue synthétique
 
 ```mermaid
 flowchart TD
     U(["👤 Utilisateur"])
-    CDN["CDN — Cloudflare"]
-    FE["Frontend — Angular"]
-    GW["API Gateway — nginx"]
-    BE["Backend API — Spring Boot"]
+    CDN["CDN - Cloudflare"]
+    FE["Frontend - Angular"]
+    GW["API Gateway - nginx"]
+    BE["Backend API - Spring Boot"]
     DB[("PostgreSQL")]
     CACHE[("Redis")]
     STRIPE["Stripe"]
@@ -49,13 +49,13 @@ flowchart TD
 
 ---
 
-## Domaine métier — Entités clés
+## Domaine métier - Entités clés
 
-| Entité | Rôle |
-|---|---|
-| `User` | Compte client, profil, authentification |
-| `Agency` | Agence de départ / retour |
-| `Offer` | Offre de location (agences + dates + catégorie ACRISS + tarif) |
+| Entité    | Rôle                                                                  |
+| --------- | --------------------------------------------------------------------- |
+| `User`    | Compte client, profil, authentification                               |
+| `Agency`  | Agence de départ / retour                                             |
+| `Offer`   | Offre de location (agences + dates + catégorie ACRISS + tarif)        |
 | `Booking` | Réservation d'une offre par un utilisateur, liée à un paiement Stripe |
 
 Relations : `User` 1→N `Booking`, `Booking` N→1 `Offer`, `Offer` N→1 `Agency` (×2).
@@ -64,13 +64,13 @@ Relations : `User` 1→N `Booking`, `Booking` N→1 `Offer`, `Offer` N→1 `Agen
 
 ## Fonctionnalités V1 (résumé)
 
-| Bloc | Fonctionnalités |
-|---|---|
-| SF-01 Compte | Créer, connexion, réinitialisation MDP, suppression |
-| SF-02 Profil | Consulter, modifier informations personnelles |
-| SF-03 Recherche | Formulaire (ville, dates, catégorie ACRISS), liste et détail offres |
-| SF-04 Réservation | Réserver, payer (Stripe), historique, modifier (≥48h), annuler |
-| SF-05 API agences | CRUD complet exposé aux outils internes |
+| Bloc              | Fonctionnalités                                                     |
+| ----------------- | ------------------------------------------------------------------- |
+| SF-01 Compte      | Créer, connexion, réinitialisation MDP, suppression                 |
+| SF-02 Profil      | Consulter, modifier informations personnelles                       |
+| SF-03 Recherche   | Formulaire (ville, dates, catégorie ACRISS), liste et détail offres |
+| SF-04 Réservation | Réserver, payer (Stripe), historique, modifier (≥48h), annuler      |
+| SF-05 API agences | CRUD complet exposé aux outils internes                             |
 
 ---
 
@@ -85,11 +85,11 @@ Relations : `User` 1→N `Booking`, `Booking` N→1 `Offer`, `Offer` N→1 `Agen
 
 ## Intégrations tierces
 
-| Service | Usage | Mécanisme |
-|---|---|---|
-| Stripe | Paiement | Checkout hosted + webhook HMAC |
-| AWS SES / Resend | Emails transactionnels | Confirmation, reset MDP |
-| API Agences | CRUD interne | Clé API (X-API-Key) |
+| Service          | Usage                  | Mécanisme                      |
+| ---------------- | ---------------------- | ------------------------------ |
+| Stripe           | Paiement               | Checkout hosted + webhook HMAC |
+| AWS SES / Resend | Emails transactionnels | Confirmation, reset MDP        |
+| API Agences      | CRUD interne           | Clé API (X-API-Key)            |
 
 ---
 
