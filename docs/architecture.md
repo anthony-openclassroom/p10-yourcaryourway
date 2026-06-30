@@ -115,24 +115,50 @@ Architecture en couches avec API-first, déployée sur infrastructure cloud mana
 flowchart TD
     CDN["<b>CDN / Edge</b> - Cloudflare\nCache statique · WAF · Protection DDoS"]
     FE["<b>Frontend</b> - Angular\nSPA · @ngx-translate · WCAG 2.1 AA"]
-    GW["<b>API Gateway</b> - nginx / Kong\nAuth JWT · Rate limiting · Logging"]
-    BE["<b>Backend API</b> - Spring Boot (Java)\nAuth · Profil · Recherche · Réservation · Agences"]
+    ALB["<b>Load Balancer</b> - AWS ALB\nRoutage · Terminaison TLS 1.3"]
+    BE["<b>Backend API</b> - Spring Boot (Java)\nAuth JWT · Rate limiting · Profil · Recherche · Réservation · Agences"]
     STRIPE["<b>Stripe</b>\nPaiement · Webhooks"]
     DB["<b>PostgreSQL</b>\nBase de données principale"]
     REDIS["<b>Redis</b>\nCache sessions · Cache recherches"]
 
     CDN -->|"HTTPS / TLS 1.3"| FE
-    FE -->|"REST / JSON"| GW
-    GW --> BE
-    GW -->|"Checkout session"| STRIPE
+    FE -->|"REST / JSON"| ALB
+    ALB --> BE
+    BE -->|"Checkout session"| STRIPE
     STRIPE -->|"Webhook"| BE
     BE --> DB
     BE --> REDIS
 ```
 
-### 3.2 Infrastructure cloud (AWS)
+### 3.2 Conteneurisation
 
-**Fournisseur retenu : AWS** (déjà utilisé pour UK/CA, équipes familières). ECS Fargate pour les conteneurs, RDS PostgreSQL Multi-AZ, ElastiCache Redis, AWS Secrets Manager.
+Le frontend et le backend sont chacun packagés dans une **image Docker distincte**, versionnée et publiée dans AWS ECR à chaque build CI. Cette conteneurisation garantit la reproductibilité des environnements (dev / staging / prod identiques), l'isolation des services et des déploiements sans interruption via ECS Fargate.
+
+### 3.3 Infrastructure cloud (AWS)
+
+**Fournisseur retenu : AWS** (déjà utilisé pour UK/CA, équipes familières). ECS Fargate pour les conteneurs (serverless - pas de gestion de serveurs EC2), RDS PostgreSQL Multi-AZ, ElastiCache Redis, AWS Secrets Manager.
+
+### 3.4 Auto-scaling
+
+L'auto-scaling est géré par **ECS Service Auto Scaling** (Application Auto Scaling d'AWS), qui ajuste dynamiquement le nombre de tâches Fargate (conteneurs) en cours d'exécution en fonction de la charge réelle.
+
+**Mécanisme - Target Tracking Scaling**
+
+La politique retenue est le _Target Tracking_ : ECS maintient automatiquement une métrique cible en ajoutant ou supprimant des tâches.
+
+| Métrique déclencheur       | Seuil cible | Action               |
+| -------------------------- | ----------- | -------------------- |
+| CPU moyenne des tâches ECS | 70 %        | Scale-out / scale-in |
+| Requêtes ALB par cible     | 1 000 req/s | Scale-out / scale-in |
+
+**Configuration min/max (V1)**
+
+| Service  | Tâches min | Tâches max |
+| -------- | ---------- | ---------- |
+| Backend  | 2          | 10         |
+| Frontend | 1          | 5          |
+
+Le minimum de 2 tâches backend garantit la haute disponibilité (réparties sur 2 AZ) même en dehors des pics. Le maximum est fixé selon la capacité RDS Multi-AZ (limitant naturel).
 
 ---
 
@@ -147,21 +173,28 @@ flowchart LR
     Stripe(["⚙️ Stripe - service externe"])
 
     subgraph YCYW ["Système YCYW"]
-        UC1["Gérer son profil"]
-        UC2["Rechercher des offres"]
-        UC3["Réserver"]
+        UC0["S'inscrire"]
+        UC1["Se connecter"]
+        UC2["Gérer son profil"]
+        UC3["Rechercher des offres"]
         UC4["Consulter les agences"]
-        UC5["Payer"]
-        UC6["API CRUD réservations"]
+        UC5["Réserver"]
+        UC6["Payer"]
+        UC7["API CRUD réservations"]
     end
 
+    Client --> UC0
     Client --> UC1
     Client --> UC2
     Client --> UC3
     Client --> UC4
-    UC3 --> UC5
-    UC5 --> Stripe
-    Agent --> UC6
+    Client --> UC5
+    UC5 --> UC6
+    UC6 --> Stripe
+    Agent --> UC7
+
+    UC2 -.->|"<<include>>"| UC1
+    UC5 -.->|"<<include>>"| UC1
 ```
 
 ### 4.2 Diagramme de séquence - Réservation
@@ -202,52 +235,99 @@ sequenceDiagram
 ```mermaid
 classDiagram
     class User {
-        UUID id
-        String email
-        String passwordHash
-        String firstName
-        String lastName
-        Date birthDate
-        String address
-        DateTime createdAt
-        DateTime deletedAt
+        id : uuid
+        email : string
+        passwordHash : string
+        firstName : string
+        lastName : string
+        birthDate : date
+        address : string
+        locale : string
+        createdAt : datetime
+        updatedAt : datetime
+        deletedAt : datetime
     }
 
     class Booking {
-        UUID id
-        UUID userId
-        UUID offerId
-        BookingStatus status
-        DateTime startAt
-        DateTime endAt
-        Decimal totalAmount
-        String stripePaymentId
-        DateTime createdAt
+        id : uuid
+        userId : uuid
+        offerId : uuid
+        status : string
+        firstName : string
+        lastName : string
+        totalAmount : decimal
+        currency : string
+        stripePaymentId : string
+        stripeSessionId : string
+        cancelledAt : datetime
+        cancellationReason : string
+        createdAt : datetime
+        updatedAt : datetime
     }
 
     class Offer {
-        UUID id
-        UUID agencyDepartureId
-        UUID agencyReturnId
-        String vehicleCategoryCode
-        DateTime startAt
-        DateTime endAt
-        Decimal pricePerDay
+        id : uuid
+        agencyDepartureId : uuid
+        agencyReturnId : uuid
+        vehicleCategoryCode : string
+        startAt : datetime
+        endAt : datetime
+        pricePerDay : decimal
+        currency : string
+        availableCount : integer
+        createdAt : datetime
+    }
+
+    class VehicleCategory {
+        code : string
+        label : string
+        description : string
+        seats : integer
+        doors : integer
+        luggageLarge : integer
+        luggageSmall : integer
+        transmission : string
+        airConditioning : boolean
+        fuelType : string
+        imageUrl : string
+        createdAt : datetime
     }
 
     class Agency {
-        UUID id
-        String name
-        String city
-        String country
-        String address
-        String timezone
+        id : uuid
+        name : string
+        city : string
+        country : string
+        address : string
+        timezone : string
+        latitude : decimal
+        longitude : decimal
+        createdAt : datetime
+    }
+
+    class Vehicle {
+        id : uuid
+        agencyId : uuid
+        vehicleCategoryCode : string
+        vin : string
+        licensePlate : string
+        make : string
+        model : string
+        year : integer
+        color : string
+        mileageKm : integer
+        status : string
+        createdAt : datetime
+        updatedAt : datetime
     }
 
     User "1" --> "*" Booking : possède
     Booking "*" --> "1" Offer : porte sur
     Offer "*" --> "1" Agency : départ
     Offer "*" --> "1" Agency : retour
+    Offer "*" --> "1" VehicleCategory : classifie
+    Agency "1" --> "*" Vehicle : possède
+    Vehicle "*" --> "1" VehicleCategory : appartient à
 ```
 
 ### 4.4 Diagramme de déploiement
@@ -287,23 +367,27 @@ flowchart TD
 
 ```mermaid
 flowchart TB
-    subgraph FE ["Frontend - Angular"]
-        P1["Page Accueil / Recherche"]
-        P2["Page Résultats"]
-        P3["Page Réservation"]
-        P4["Page Profil"]
-        P5["Page Historique"]
-        P6["Page Tchat (SF-06) ⭐ PoC"]
+    subgraph DOCKER_FE ["Conteneur Docker - image frontend"]
+        subgraph FE ["Frontend - Angular"]
+            P1["Page Accueil / Recherche"]
+            P2["Page Résultats"]
+            P3["Page Réservation"]
+            P4["Page Profil"]
+            P5["Page Historique"]
+            P6["Page Tchat (SF-06) ⭐ PoC"]
+        end
     end
 
-    subgraph BE ["Backend API - Spring Boot"]
-        M1["Module Auth"]
-        M2["Module Profil"]
-        M3["Module Recherche"]
-        M4["Module Réservation"]
-        M5["Module Agences"]
-        M6["Module Webhook"]
-        M7["Module Tchat (SF-06) ⭐ PoC\nREST + WebSocket/STOMP"]
+    subgraph DOCKER_BE ["Conteneur Docker - image backend"]
+        subgraph BE ["Backend API - Spring Boot"]
+            M1["Module Auth"]
+            M2["Module Profil"]
+            M3["Module Recherche"]
+            M4["Module Réservation"]
+            M5["Module Agences"]
+            M6["Module Webhook"]
+            M7["Module Tchat (SF-06) ⭐ PoC\nREST + WebSocket/STOMP"]
+        end
     end
 
     subgraph EXT ["Services externes"]
@@ -311,8 +395,8 @@ flowchart TB
         EMAIL["Service Email (AWS SES)"]
     end
 
-    DB[("PostgreSQL")]
-    CACHE[("Redis")]
+    DB[("PostgreSQL\nAWS RDS")]
+    CACHE[("Redis\nAWS ElastiCache")]
 
     P1 -->|"GET /offers"| M3
     P3 -->|"POST /bookings"| M4
@@ -335,20 +419,20 @@ flowchart TB
 ```mermaid
 classDiagram
     class ChatSession {
-        UUID id
-        UUID userId
-        UUID agencyId
-        String status
-        DateTime createdAt
-        DateTime closedAt
+        id : uuid
+        userId : uuid
+        agencyId : uuid
+        status : string
+        createdAt : datetime
+        closedAt : datetime
     }
 
     class ChatMessage {
-        UUID id
-        UUID sessionId
-        String senderRole
-        String content
-        DateTime sentAt
+        id : uuid
+        sessionId : uuid
+        senderRole : string
+        content : string
+        sentAt : datetime
     }
 
     ChatSession "1" --> "*" ChatMessage : contient
@@ -391,18 +475,53 @@ CREATE TABLE agencies (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+CREATE TABLE vehicle_categories (
+    code             CHAR(4) PRIMARY KEY,           -- code ACRISS (ex: CDAR, SWAR)
+    label            VARCHAR(100) NOT NULL,          -- ex: "Compact 4 portes"
+    description      TEXT,
+    seats            INTEGER NOT NULL,
+    doors            INTEGER,
+    luggage_large    INTEGER NOT NULL DEFAULT 0,
+    luggage_small    INTEGER NOT NULL DEFAULT 0,
+    transmission     VARCHAR(10) NOT NULL            -- 'manual' | 'automatic'
+                     CONSTRAINT vc_transmission_check CHECK (transmission IN ('manual', 'automatic')),
+    air_conditioning BOOLEAN NOT NULL DEFAULT TRUE,
+    fuel_type        VARCHAR(10) NOT NULL DEFAULT 'petrol'
+                     CONSTRAINT vc_fuel_check CHECK (fuel_type IN ('petrol', 'diesel', 'hybrid', 'electric')),
+    image_url        TEXT,
+    created_at       TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
 CREATE TABLE offers (
-    id                  UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    agency_departure_id UUID NOT NULL REFERENCES agencies(id),
-    agency_return_id    UUID NOT NULL REFERENCES agencies(id),
-    vehicle_category    CHAR(4) NOT NULL,  -- code ACRISS
-    start_at            TIMESTAMPTZ NOT NULL,
-    end_at              TIMESTAMPTZ NOT NULL,
-    price_per_day       NUMERIC(10,2) NOT NULL,
-    currency            CHAR(3) NOT NULL DEFAULT 'EUR', -- ISO 4217
-    available_count     INTEGER NOT NULL DEFAULT 1,
-    created_at          TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    id                     UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    agency_departure_id    UUID NOT NULL REFERENCES agencies(id),
+    agency_return_id       UUID NOT NULL REFERENCES agencies(id),
+    vehicle_category_code  CHAR(4) NOT NULL REFERENCES vehicle_categories(code),
+    start_at               TIMESTAMPTZ NOT NULL,
+    end_at                 TIMESTAMPTZ NOT NULL,
+    price_per_day          NUMERIC(10,2) NOT NULL,
+    currency               CHAR(3) NOT NULL DEFAULT 'EUR', -- ISO 4217
+    available_count        INTEGER NOT NULL DEFAULT 1,
+    created_at             TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     CONSTRAINT offers_dates_check CHECK (end_at > start_at)
+);
+
+CREATE TABLE vehicles (
+    id                    UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    agency_id             UUID NOT NULL REFERENCES agencies(id),
+    vehicle_category_code CHAR(4) NOT NULL REFERENCES vehicle_categories(code),
+    vin                   CHAR(17) NOT NULL UNIQUE,    -- identifiant mondial du châssis
+    license_plate         VARCHAR(20) NOT NULL,         -- unique par pays (non contraint globalement)
+    make                  VARCHAR(100) NOT NULL,         -- ex: Renault
+    model                 VARCHAR(100) NOT NULL,         -- ex: Clio
+    year                  SMALLINT NOT NULL,
+    color                 VARCHAR(50),
+    mileage_km            INTEGER NOT NULL DEFAULT 0,
+    status                VARCHAR(15) NOT NULL DEFAULT 'available'
+                          CONSTRAINT vehicles_status_check
+                          CHECK (status IN ('available', 'rented', 'maintenance', 'retired')),
+    created_at            TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at            TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 CREATE TABLE bookings (
@@ -423,10 +542,15 @@ CREATE TABLE bookings (
     updated_at         TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX idx_bookings_user_id  ON bookings(user_id);
-CREATE INDEX idx_bookings_offer_id ON bookings(offer_id);
-CREATE INDEX idx_offers_departure  ON offers(agency_departure_id, start_at);
-CREATE INDEX idx_offers_category   ON offers(vehicle_category);
+-- Filtrage par pays : offers → agencies.country (via agency_departure_id)
+-- ex: SELECT o.* FROM offers o JOIN agencies a ON o.agency_departure_id = a.id WHERE a.country = 'FR'
+CREATE INDEX idx_agencies_country      ON agencies(country);
+CREATE INDEX idx_bookings_user_id      ON bookings(user_id);
+CREATE INDEX idx_bookings_offer_id     ON bookings(offer_id);
+CREATE INDEX idx_offers_departure      ON offers(agency_departure_id, start_at);
+CREATE INDEX idx_offers_category       ON offers(vehicle_category_code);
+CREATE INDEX idx_vehicles_agency       ON vehicles(agency_id);
+CREATE INDEX idx_vehicles_category     ON vehicles(vehicle_category_code);
 ```
 
 ### 5.2 Tables de tchat (module SF-06)
@@ -581,16 +705,16 @@ sequenceDiagram
 ```mermaid
 flowchart LR
     APP["Application Agence"]
-    GW["API Gateway"]
-    BE["Backend API\nCRUD"]
+    ALB["AWS ALB"]
+    BE["Backend API\nValidation X-API-Key · Rate limit · CRUD"]
     DB["PostgreSQL"]
 
-    APP -->|"X-API-Key"| GW
-    GW -->|"Validation + rate limit"| BE
+    APP -->|"X-API-Key"| ALB
+    ALB --> BE
     BE --> DB
 ```
 
-Clé API stockée dans AWS Secrets Manager. Opérations filtrées par `agency_id` (row-level filtering).
+Clé API stockée dans AWS Secrets Manager. La validation de la clé et le rate limiting sont assurés par le Backend (Spring Boot). Opérations filtrées par `agency_id` (row-level filtering).
 
 ---
 
