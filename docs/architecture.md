@@ -193,8 +193,8 @@ flowchart LR
     UC6 --> Stripe
     Agent --> UC7
 
-    UC2 -.->|"<<include>>"| UC1
-    UC5 -.->|"<<include>>"| UC1
+    UC2 -.->|"«include»"| UC1
+    UC5 -.->|"«include»"| UC1
 ```
 
 ### 4.2 Diagramme de séquence - Réservation
@@ -232,6 +232,10 @@ sequenceDiagram
 
 ### 4.3 Diagramme de classes (domaine métier)
 
+> Les FK sont portées par les associations (flèches), pas répétées comme attributs. Les colonnes techniques (`createdAt`, `updatedAt`, `deletedAt`) sont omises - elles figurent dans le schéma SQL §5.1.
+
+#### 4.3a - Domaine réservation
+
 ```mermaid
 classDiagram
     class User {
@@ -243,15 +247,10 @@ classDiagram
         birthDate : date
         address : string
         locale : string
-        createdAt : datetime
-        updatedAt : datetime
-        deletedAt : datetime
     }
 
     class Booking {
         id : uuid
-        userId : uuid
-        offerId : uuid
         status : string
         firstName : string
         lastName : string
@@ -261,36 +260,15 @@ classDiagram
         stripeSessionId : string
         cancelledAt : datetime
         cancellationReason : string
-        createdAt : datetime
-        updatedAt : datetime
     }
 
     class Offer {
         id : uuid
-        agencyDepartureId : uuid
-        agencyReturnId : uuid
-        vehicleCategoryCode : string
         startAt : datetime
         endAt : datetime
         pricePerDay : decimal
         currency : string
         availableCount : integer
-        createdAt : datetime
-    }
-
-    class VehicleCategory {
-        code : string
-        label : string
-        description : string
-        seats : integer
-        doors : integer
-        luggageLarge : integer
-        luggageSmall : integer
-        transmission : string
-        airConditioning : boolean
-        fuelType : string
-        imageUrl : string
-        createdAt : datetime
     }
 
     class Agency {
@@ -300,15 +278,29 @@ classDiagram
         country : string
         address : string
         timezone : string
+    }
+
+    User "1" --> "*" Booking : possède
+    Booking "*" --> "1" Offer : porte sur
+    Offer "*" --> "1" Agency : départ
+    Offer "*" --> "1" Agency : retour
+```
+
+#### 4.3b - Flotte véhicules
+
+```mermaid
+classDiagram
+    class Agency {
+        id : uuid
+        name : string
+        city : string
+        country : string
         latitude : decimal
         longitude : decimal
-        createdAt : datetime
     }
 
     class Vehicle {
         id : uuid
-        agencyId : uuid
-        vehicleCategoryCode : string
         vin : string
         licensePlate : string
         make : string
@@ -317,17 +309,23 @@ classDiagram
         color : string
         mileageKm : integer
         status : string
-        createdAt : datetime
-        updatedAt : datetime
     }
 
-    User "1" --> "*" Booking : possède
-    Booking "*" --> "1" Offer : porte sur
-    Offer "*" --> "1" Agency : départ
-    Offer "*" --> "1" Agency : retour
-    Offer "*" --> "1" VehicleCategory : classifie
+    class VehicleCategory {
+        code : string
+        label : string
+        seats : integer
+        doors : integer
+        luggageLarge : integer
+        luggageSmall : integer
+        transmission : string
+        airConditioning : boolean
+        fuelType : string
+    }
+
     Agency "1" --> "*" Vehicle : possède
     Vehicle "*" --> "1" VehicleCategory : appartient à
+    Offer "*" --> "1" VehicleCategory : classifie
 ```
 
 ### 4.4 Diagramme de déploiement
